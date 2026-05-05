@@ -2845,7 +2845,7 @@
                 <h3 style="font-size: 24px; color: #333; margin-bottom: 20px;">积分管理系统</h3>
                 <div style="background: #F5F5F5; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
                     <div style="color: #666; font-size: 16px; line-height: 2.2; text-align: left;">
-                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.6</span></p>
+                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.7</span></p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">作者：</strong>金子 waicy_2003@163.com</p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">编译时间：</strong><span id="about-compile-time"></span></p>
                     </div>
@@ -5394,64 +5394,6 @@ let isDragging = false;
                 e.preventDefault();
             }
             
-            const track = document.getElementById('carousel-track');
-            if (!track) return;
-            
-            // 清除之前的克隆卡片
-            const oldClone = track.querySelector('[data-index="clone-prev"], [data-index="clone-next"]');
-            if (oldClone) oldClone.remove();
-            
-            // 预加载前后的克隆卡片实现平滑滚动
-            if (kids.length === 2) {
-                // 2个用户：预加载前后两个克隆
-                const prevIndex = (carouselCurrentIndex - 1 + kids.length) % kids.length;
-                const nextIndex = (carouselCurrentIndex + 1) % kids.length;
-                const prevKid = kids[prevIndex];
-                const nextKid = kids[nextIndex];
-                
-                const prevClone = createCarouselCard(prevKid, 'clone-prev');
-                const nextClone = createCarouselCard(nextKid, 'clone-next');
-                
-                track.insertBefore(prevClone, track.firstChild);
-                track.appendChild(nextClone);
-                
-                track.style.transition = 'none';
-                track.style.transform = 'translateX(-100%)';
-                dragStartOffset = -100;
-            } else if (carouselCurrentIndex === 0) {
-                // 第一个：预加载最后一个（左边）
-                const lastKid = kids[kids.length - 1];
-                const cloneCard = createCarouselCard(lastKid, 'clone-prev');
-                track.insertBefore(cloneCard, track.firstChild);
-                track.style.transition = 'none';
-                track.style.transform = 'translateX(-100%)';
-                dragStartOffset = -100;
-            } else if (carouselCurrentIndex === kids.length - 1) {
-                // 最后一个：预加载第一个（右边）
-                const firstKid = kids[0];
-                const cloneCard = createCarouselCard(firstKid, 'clone-next');
-                track.appendChild(cloneCard);
-                const transform = track.style.transform;
-                const match = transform.match(/translateX\((-?\d+\.?\d*)%\)/);
-                dragStartOffset = match ? parseFloat(match[1]) : carouselTrackOffset;
-                track.style.transition = 'none';
-            } else {
-                // 中间位置：预加载前后两个克隆卡片
-                // 往左拖时需要显示下一个（右边）
-                const nextKid = kids[carouselCurrentIndex + 1];
-                const nextClone = createCarouselCard(nextKid, 'clone-next');
-                track.appendChild(nextClone);
-                
-                // 往右拖时需要显示上一个（左边）
-                const prevKid = kids[carouselCurrentIndex - 1];
-                const prevClone = createCarouselCard(prevKid, 'clone-prev');
-                track.insertBefore(prevClone, track.firstChild);
-                
-                track.style.transition = 'none';
-                track.style.transform = 'translateX(-100%)';
-                dragStartOffset = -100;
-            }
-            
             dragCurrentX = dragStartX;
             
             const viewport = document.getElementById('carousel-viewport');
@@ -5468,9 +5410,66 @@ let isDragging = false;
             
             const deltaX = dragCurrentX - dragStartX;
             
-            if (!isDragging && Math.abs(deltaX) > 10) {
-                isDragging = true;
+            // 只有移动超过30px才认为是真正的拖动，开始处理克隆卡片
+            if (!hasMoved && Math.abs(deltaX) > 30) {
                 hasMoved = true;
+                isDragging = true;
+                
+                const track = document.getElementById('carousel-track');
+                if (!track) return;
+                
+                // 清除之前的克隆卡片
+                const oldClone = track.querySelector('[data-index="clone-prev"], [data-index="clone-next"]');
+                if (oldClone) oldClone.remove();
+                
+                // 预加载前后的克隆卡片实现平滑滚动
+                if (kids.length === 2) {
+                    // 2个用户：预加载前后两个克隆
+                    const prevIndex = (carouselCurrentIndex - 1 + kids.length) % kids.length;
+                    const nextIndex = (carouselCurrentIndex + 1) % kids.length;
+                    const prevKid = kids[prevIndex];
+                    const nextKid = kids[nextIndex];
+                    
+                    const prevClone = createCarouselCard(prevKid, 'clone-prev');
+                    const nextClone = createCarouselCard(nextKid, 'clone-next');
+                    
+                    track.insertBefore(prevClone, track.firstChild);
+                    track.appendChild(nextClone);
+                    
+                    track.style.transition = 'none';
+                    track.style.transform = 'translateX(-100%)';
+                    dragStartOffset = -100;
+                } else if (carouselCurrentIndex === 0) {
+                    // 第一个：预加载最后一个（左边）
+                    const lastKid = kids[kids.length - 1];
+                    const cloneCard = createCarouselCard(lastKid, 'clone-prev');
+                    track.insertBefore(cloneCard, track.firstChild);
+                    track.style.transition = 'none';
+                    track.style.transform = 'translateX(-100%)';
+                    dragStartOffset = -100;
+                } else if (carouselCurrentIndex === kids.length - 1) {
+                    // 最后一个：预加载第一个（右边）
+                    const firstKid = kids[0];
+                    const cloneCard = createCarouselCard(firstKid, 'clone-next');
+                    track.appendChild(cloneCard);
+                    const transform = track.style.transform;
+                    const match = transform.match(/translateX\((-?\d+\.?\d*)%\)/);
+                    dragStartOffset = match ? parseFloat(match[1]) : carouselTrackOffset;
+                    track.style.transition = 'none';
+                } else {
+                    // 中间位置：预加载前后两个克隆卡片
+                    const nextKid = kids[carouselCurrentIndex + 1];
+                    const nextClone = createCarouselCard(nextKid, 'clone-next');
+                    track.appendChild(nextClone);
+                    
+                    const prevKid = kids[carouselCurrentIndex - 1];
+                    const prevClone = createCarouselCard(prevKid, 'clone-prev');
+                    track.insertBefore(prevClone, track.firstChild);
+                    
+                    track.style.transition = 'none';
+                    track.style.transform = 'translateX(-100%)';
+                    dragStartOffset = -100;
+                }
             }
             
             if (!isDragging) return;
@@ -5479,6 +5478,13 @@ let isDragging = false;
         }
         
         function handleDragEnd(e) {
+            // 没有实际移动，不做任何处理
+            if (!hasMoved) {
+                const viewport = document.getElementById('carousel-viewport');
+                if (viewport) viewport.classList.remove('dragging');
+                return;
+            }
+            
             if (!isDragging) return;
             
             isDragging = false;
@@ -5495,7 +5501,7 @@ let isDragging = false;
             const cloneNext = track.querySelector('[data-index="clone-next"]');
             const usedClone = clonePrev || cloneNext;
             
-            const shouldSwitch = (Math.abs(deltaX) > 80 || (dragSpeed > 500 && Math.abs(deltaX) > 30)) && Math.abs(deltaX) > 10;
+            const shouldSwitch = (Math.abs(deltaX) > 80 || (dragSpeed > 500 && Math.abs(deltaX) > 30)) && Math.abs(deltaX) > 30;
             
             if (!shouldSwitch) {
                 // 不够距离切换，回弹到原位
