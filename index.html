@@ -2845,7 +2845,7 @@
                 <h3 style="font-size: 24px; color: #333; margin-bottom: 20px;">积分管理系统</h3>
                 <div style="background: #F5F5F5; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
                     <div style="color: #666; font-size: 16px; line-height: 2.2; text-align: left;">
-                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.5</span></p>
+                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.6</span></p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">作者：</strong>金子 waicy_2003@163.com</p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">编译时间：</strong><span id="about-compile-time"></span></p>
                     </div>
@@ -5336,8 +5336,7 @@ function cropAvatar() {
         }
 
         // 方案D：拖动逻辑
-        let isDragging = false;
-        let isAnimating = false;
+let isDragging = false;
         let dragStartX = 0;
         let dragCurrentX = 0;
         let dragStartTime = 0;
@@ -5346,6 +5345,7 @@ function cropAvatar() {
         let carouselCurrentIndex = 0;
         let carouselTrackOffset = 0;
         let touchSwipeInitialized = false;
+        let hasMoved = false;
         
         function initTouchSwipe() {
             if (touchSwipeInitialized) return;
@@ -5382,7 +5382,8 @@ function cropAvatar() {
             // 确保有多个成员才允许拖动
             if (!kids || kids.length <= 1) return;
             
-            isDragging = true;
+            hasMoved = false;
+            isDragging = false;
             dragStartTime = Date.now();
             
             if (e.type === 'touchstart') {
@@ -5458,8 +5459,6 @@ function cropAvatar() {
         }
         
         function handleDragMove(e) {
-            if (!isDragging) return;
-            
             if (e.type === 'touchmove') {
                 dragCurrentX = e.touches[0].clientX;
                 e.preventDefault();
@@ -5468,6 +5467,14 @@ function cropAvatar() {
             }
             
             const deltaX = dragCurrentX - dragStartX;
+            
+            if (!isDragging && Math.abs(deltaX) > 10) {
+                isDragging = true;
+                hasMoved = true;
+            }
+            
+            if (!isDragging) return;
+            
             applyDragTransform(deltaX);
         }
         
@@ -5488,7 +5495,7 @@ function cropAvatar() {
             const cloneNext = track.querySelector('[data-index="clone-next"]');
             const usedClone = clonePrev || cloneNext;
             
-            const shouldSwitch = Math.abs(deltaX) > 80 || (dragSpeed > 500 && Math.abs(deltaX) > 30);
+            const shouldSwitch = (Math.abs(deltaX) > 80 || (dragSpeed > 500 && Math.abs(deltaX) > 30)) && Math.abs(deltaX) > 10;
             
             if (!shouldSwitch) {
                 // 不够距离切换，回弹到原位
