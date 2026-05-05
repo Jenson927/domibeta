@@ -2845,7 +2845,7 @@
                 <h3 style="font-size: 24px; color: #333; margin-bottom: 20px;">积分管理系统</h3>
                 <div style="background: #F5F5F5; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
                     <div style="color: #666; font-size: 16px; line-height: 2.2; text-align: left;">
-                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.7</span></p>
+                        <p style="margin-bottom: 15px;"><strong style="color: #333;">版本：</strong><span id="about-version">V1.0.8</span></p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">作者：</strong>金子 waicy_2003@163.com</p>
                         <p style="margin-bottom: 15px;"><strong style="color: #333;">编译时间：</strong><span id="about-compile-time"></span></p>
                     </div>
@@ -4394,9 +4394,10 @@
                     });
                 }
             });
-            
-            saveToStorage('deduct_reasons_pool', deductReasons);
         }
+        
+        // 始终保存，确保扣分原因数据存在
+        saveToStorage('deduct_reasons_pool', deductReasons);
         
         let currentKidId = loadFromStorage('current_kid_id') || 1;
         let settingsPasswordVerified = false;
@@ -6231,7 +6232,7 @@ function openAddPointsModal() {
             document.getElementById('add-exchange-option-form').style.display = 'block';
             document.getElementById('exchange-option-name-input').value = '';
             document.getElementById('exchange-option-desc-input').value = '';
-            document.getElementById('exchange-option-points-input').value = '';
+            document.getElementById('exchange-option-points-input').value = '100';
             document.getElementById('exchange-option-unit-input').value = '';
             document.getElementById('exchange-option-category-input').value = 'item';
             document.getElementById('exchange-option-icon-input').value = '🎁';
@@ -6240,13 +6241,19 @@ function openAddPointsModal() {
         function addExchangeOption() {
             const name = document.getElementById('exchange-option-name-input').value.trim();
             const description = document.getElementById('exchange-option-desc-input').value.trim();
-            const pointsRequired = parseInt(document.getElementById('exchange-option-points-input').value);
+            const pointsInput = document.getElementById('exchange-option-points-input').value;
+            const pointsRequired = pointsInput ? parseInt(pointsInput) : 100;
             const unit = document.getElementById('exchange-option-unit-input').value.trim();
             const category = document.getElementById('exchange-option-category-input').value;
             const icon = document.getElementById('exchange-option-icon-input').value;
             
-            if (!name || !description || !pointsRequired || !unit) {
-                alert('请填写所有必填项');
+            if (!name || !unit) {
+                alert('请填写名称和单位');
+                return;
+            }
+            
+            if (isNaN(pointsRequired) || pointsRequired < 10) {
+                alert('所需积分不能少于10');
                 return;
             }
             
@@ -7366,12 +7373,14 @@ function updateDrawScrollDisplay(currentIndex, position) {
                 
                 rewards = DEFAULT_REWARDS;
                 addReasons = DEFAULT_ADD_REASONS;
+                const deductReasons = DEFAULT_DEDUCT_REASONS;
                 currentKidId = 1;
                 systemConfig.customRiddles = [];
                 
                 saveToStorage('kids_data', kids);
                 saveToStorage('rewards_pool', rewards);
                 saveToStorage('reasons_pool', addReasons);
+                saveToStorage('deduct_reasons_pool', deductReasons);
                 saveToStorage('current_kid_id', currentKidId);
                 saveToStorage('system_config', systemConfig);
                 
@@ -7796,16 +7805,48 @@ function updateDrawScrollDisplay(currentIndex, position) {
         }
 
         function exportAllData() {
+            const kidsData = loadFromStorage('kids_data');
+            const rewardsPool = loadFromStorage('rewards_pool');
+            const reasonsPool = loadFromStorage('reasons_pool');
+            const deductReasons = loadFromStorage('deduct_reasons_pool');
+            const systemConfig = loadFromStorage('system_config');
+            const currentKidId = loadFromStorage('current_kid_id');
+            const customQuotes = loadFromStorage('custom_quotes');
+            
+            // 处理 systemConfig，确保包含所有必要字段
+            const defaultSystemConfig = {
+                exchangeRate: DEFAULT_EXCHANGE_RATE,
+                backgroundMode: 'carousel',
+                backgroundStyle: 'cover',
+                backgroundPhotos: [],
+                currentPhotoIndex: 0,
+                password: '',
+                customRiddles: [],
+                exchangeOptions: [],
+                customQuotes: []
+            };
+            
+            const exportedSystemConfig = systemConfig ? {
+                ...defaultSystemConfig,
+                ...systemConfig,
+                exchangeOptions: (systemConfig.exchangeOptions && systemConfig.exchangeOptions.length > 0) 
+                    ? systemConfig.exchangeOptions : [],
+                customRiddles: (systemConfig.customRiddles && systemConfig.customRiddles.length > 0) 
+                    ? systemConfig.customRiddles : [],
+                backgroundPhotos: (systemConfig.backgroundPhotos && systemConfig.backgroundPhotos.length > 0) 
+                    ? systemConfig.backgroundPhotos : []
+            } : defaultSystemConfig;
+            
             const allData = {
                 version: '1.0',
                 exportDate: new Date().toISOString(),
-                kids_data: loadFromStorage('kids_data'),
-                rewards_pool: loadFromStorage('rewards_pool'),
-                reasons_pool: loadFromStorage('reasons_pool'),
-                deduct_reasons_pool: loadFromStorage('deduct_reasons_pool'),  // 新增
-                system_config: loadFromStorage('system_config'),
-                current_kid_id: loadFromStorage('current_kid_id'),
-                custom_quotes: loadFromStorage('custom_quotes')
+                kids_data: kidsData && kidsData.length > 0 ? kidsData : DEFAULT_KIDS,
+                rewards_pool: rewardsPool && rewardsPool.length > 0 ? rewardsPool : DEFAULT_REWARDS,
+                reasons_pool: reasonsPool && reasonsPool.length > 0 ? reasonsPool : DEFAULT_ADD_REASONS,
+                deduct_reasons_pool: deductReasons && deductReasons.length > 0 ? deductReasons : DEFAULT_DEDUCT_REASONS,
+                system_config: exportedSystemConfig,
+                current_kid_id: currentKidId || 1,
+                custom_quotes: customQuotes || []
             };
 
             const jsonStr = JSON.stringify(allData, null, 2);
@@ -7818,9 +7859,10 @@ function updateDrawScrollDisplay(currentIndex, position) {
             a.download = `积分管理系统数据_${new Date().toLocaleDateString()}.json`;
             a.click();
             
-            URL.revokeObjectURL(url);
-            
-            alert('数据已导出！');
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                alert('数据已导出！');
+            }, 500);
         }
 
         function triggerFileImport() {
@@ -7845,13 +7887,52 @@ function updateDrawScrollDisplay(currentIndex, position) {
                         return;
                     }
                     
-                    if (data.kids_data) saveToStorage('kids_data', data.kids_data);
-                    if (data.rewards_pool) saveToStorage('rewards_pool', data.rewards_pool);
-                    if (data.reasons_pool) saveToStorage('reasons_pool', data.reasons_pool);
-                    if (data.deduct_reasons_pool) saveToStorage('deduct_reasons_pool', data.deduct_reasons_pool);  // 新增
-                    if (data.system_config) saveToStorage('system_config', data.system_config);
-                    if (data.current_kid_id) saveToStorage('current_kid_id', data.current_kid_id);
-                    if (data.custom_quotes) saveToStorage('custom_quotes', data.custom_quotes);
+                    if (data.kids_data && data.kids_data.length > 0) {
+                        saveToStorage('kids_data', data.kids_data);
+                    } else {
+                        saveToStorage('kids_data', DEFAULT_KIDS);
+                    }
+                    if (data.rewards_pool && data.rewards_pool.length > 0) {
+                        saveToStorage('rewards_pool', data.rewards_pool);
+                    } else {
+                        saveToStorage('rewards_pool', DEFAULT_REWARDS);
+                    }
+                    if (data.reasons_pool && data.reasons_pool.length > 0) {
+                        saveToStorage('reasons_pool', data.reasons_pool);
+                    } else {
+                        saveToStorage('reasons_pool', DEFAULT_ADD_REASONS);
+                    }
+                    if (data.deduct_reasons_pool && data.deduct_reasons_pool.length > 0) {
+                        saveToStorage('deduct_reasons_pool', data.deduct_reasons_pool);
+                    } else {
+                        saveToStorage('deduct_reasons_pool', DEFAULT_DEDUCT_REASONS);
+                    }
+                    
+                    // 处理 system_config 的默认值
+                    const defaultSystemConfig = {
+                        exchangeRate: DEFAULT_EXCHANGE_RATE,
+                        backgroundMode: 'carousel',
+                        backgroundStyle: 'cover',
+                        backgroundPhotos: [],
+                        currentPhotoIndex: 0,
+                        password: '',
+                        customRiddles: [],
+                        exchangeOptions: [],
+                        customQuotes: []
+                    };
+                    const importedSystemConfig = data.system_config ? {
+                        ...defaultSystemConfig,
+                        ...data.system_config,
+                        exchangeOptions: (data.system_config.exchangeOptions && data.system_config.exchangeOptions.length > 0)
+                            ? data.system_config.exchangeOptions : [],
+                        customRiddles: (data.system_config.customRiddles && data.system_config.customRiddles.length > 0)
+                            ? data.system_config.customRiddles : [],
+                        backgroundPhotos: (data.system_config.backgroundPhotos && data.system_config.backgroundPhotos.length > 0)
+                            ? data.system_config.backgroundPhotos : []
+                    } : defaultSystemConfig;
+                    saveToStorage('system_config', importedSystemConfig);
+                    saveToStorage('current_kid_id', data.current_kid_id || 1);
+                    saveToStorage('custom_quotes', data.custom_quotes || []);
                     
                     alert('数据已导入！页面将刷新。');
                     location.reload();
