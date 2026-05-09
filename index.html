@@ -1940,6 +1940,267 @@
                 min-height: 44px;
             }
         }
+
+        /* ==================== 历史记录样式 ==================== */
+        
+        .history-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filter-btn-secondary {
+            padding: 8px 16px;
+            background: #9E9E9E;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .history-stats-summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card {
+            flex: 1;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stats-card.add { background: #E8F5E9; }
+        .stats-card.deduct { background: #FFEBEE; }
+
+        .stats-label {
+            display: block;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .stats-value {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stats-card.add .stats-value { color: #4CAF50; }
+        .stats-card.deduct .stats-value { color: #F44336; }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #f9f9f9;
+        }
+
+        .history-item-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .history-item-icon.add { background: #E8F5E9; }
+        .history-item-icon.deduct { background: #FFEBEE; }
+        .history-item-icon.exchange { background: #F3E5F5; }
+        .history-item-icon.draw { background: #FFF3E0; }
+
+        .history-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .history-item-reason {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .history-item-kid {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .history-item-points {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .history-item-points.add { color: #4CAF50; }
+        .history-item-points.deduct { color: #F44336; }
+        .history-item-points.exchange { color: #9C27B0; }
+        .history-item-points.draw { color: #FF9800; }
+
+        .history-item-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .history-item-meta.edited {
+            color: #FF9800;
+        }
+
+        .history-item-edit-btn {
+            padding: 6px 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .history-item-edit-btn:hover {
+            background: #1976D2;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .history-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .page-btn {
+            padding: 8px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .record-original-info {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .info-label { color: #666; }
+        .info-value { color: #333; font-weight: 500; }
+
+        .modal-divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 15px 0;
+        }
+
+        .points-impact-warning {
+            padding: 10px;
+            background: #FFF3E0;
+            border-radius: 6px;
+            color: #E65100;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .delete-record-btn {
+            padding: 12px 15px;
+            background: #f5f5f5;
+            color: #F44336;
+            border: 1px solid #F44336;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -2780,6 +3041,14 @@
                 </div>
 
                 <div class="config-section">
+                    <h3>📋 历史记录管理</h3>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                        查看、编辑和删除所有积分操作记录
+                    </p>
+                    <button class="submit-btn" onclick="openHistoryManagementModal()">打开历史记录</button>
+                </div>
+
+                <div class="config-section">
                     <h3>💾 数据备份与恢复</h3>
                     <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
                         导出数据可用于迁移到其他设备
@@ -2829,8 +3098,150 @@
                     <button class="submit-btn" onclick="openAboutModal()">查看关于信息</button>
                 </div>
 
-                <button class="cancel-btn" onclick="closeModal('settings-modal')">关闭</button>
+                <button class="cancel-btn" onclick="closeHistoryManagementModal()">关闭</button>
             </div>
+    </div>
+
+    <!-- 历史记录管理模态框 -->
+    <div class="modal" id="history-management-modal">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>📋 历史记录管理</h2>
+                    <button class="close-btn" onclick="closeHistoryManagementModal()">×</button>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="history-filter-bar">
+                <div class="filter-group">
+                    <label>成员：</label>
+                    <select id="history-modal-kid-select">
+                        <option value="all">所有成员</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>类型：</label>
+                    <select id="history-modal-type-select">
+                        <option value="all">全部</option>
+                        <option value="add">加分</option>
+                        <option value="deduct">扣分</option>
+                        <option value="exchange">兑换</option>
+                        <option value="draw">兑奖</option>
+                    </select>
+                </div>
+                <button class="filter-btn" onclick="applyHistoryModalFilter()">筛选</button>
+                <button class="filter-btn-secondary" onclick="resetHistoryModalFilter()">重置</button>
+            </div>
+            
+            <!-- 统计摘要 -->
+            <div class="history-stats-summary">
+                <div class="stats-card">
+                    <span class="stats-label">记录总数</span>
+                    <span class="stats-value" id="history-modal-total">0</span>
+                </div>
+                <div class="stats-card add">
+                    <span class="stats-label">总加分</span>
+                    <span class="stats-value" id="history-modal-add">+0</span>
+                </div>
+                <div class="stats-card deduct">
+                    <span class="stats-label">总扣分</span>
+                    <span class="stats-value" id="history-modal-deduct">-0</span>
+                </div>
+            </div>
+            
+            <!-- 历史记录列表 -->
+            <div id="history-modal-list" class="history-list"></div>
+            
+            <!-- 分页控制 -->
+            <div class="history-pagination">
+                <button class="page-btn" id="history-prev-btn" onclick="prevHistoryModalPage()">上一页</button>
+                <span class="page-info" id="history-page-info">第 1 页，共 1 页</span>
+                <button class="page-btn" id="history-next-btn" onclick="nextHistoryModalPage()">下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑记录模态框 -->
+    <div class="modal" id="edit-record-modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2>✏️ 编辑记录</h2>
+                <button class="close-btn" onclick="closeEditRecordModal()">×</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <span style="color: #666;">成员：</span>
+                <span id="edit-record-kid-name" style="color: #4CAF50; font-weight: bold;">-</span>
+            </div>
+            
+            <!-- 原始记录信息 -->
+            <div class="record-original-info">
+                <div class="info-row">
+                    <span class="info-label">原始类型：</span>
+                    <span class="info-value" id="edit-original-type">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">原始积分：</span>
+                    <span class="info-value" id="edit-original-points">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">原始原因：</span>
+                    <span class="info-value" id="edit-original-reason">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">原始日期：</span>
+                    <span class="info-value" id="edit-original-date">-</span>
+                </div>
+            </div>
+            
+            <hr class="modal-divider">
+            
+            <!-- 编辑表单 -->
+            <div class="form-group">
+                <label>记录类型</label>
+                <select id="edit-record-type" onchange="onEditRecordTypeChange()">
+                    <option value="add">➕ 加分</option>
+                    <option value="deduct">➖ 扣分</option>
+                    <option value="exchange">🎁 积分兑换</option>
+                    <option value="draw">🎰 兑奖</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>积分变化</label>
+                <input type="number" id="edit-record-points" min="0" placeholder="输入积分值">
+            </div>
+            
+            <div class="form-group" id="edit-reason-group">
+                <label>原因/说明</label>
+                <select id="edit-record-reason">
+                </select>
+            </div>
+            
+            <div class="form-group" id="edit-reward-group" style="display: none;">
+                <label>奖励名称</label>
+                <input type="text" id="edit-record-reward" placeholder="输入奖励名称">
+            </div>
+            
+            <div class="form-group">
+                <label>日期</label>
+                <input type="date" id="edit-record-date">
+                <p style="color: #999; font-size: 12px; margin-top: 5px;">不修改则保持原时间</p>
+            </div>
+            
+            <!-- 积分影响提示 -->
+            <div class="points-impact-warning" id="points-impact-warning">
+                ⚠️ 修改此记录将影响成员总积分
+            </div>
+            
+            <div class="modal-actions">
+                <button class="delete-record-btn" onclick="confirmDeleteRecord()">
+                    🗑️ 删除记录
+                </button>
+                <button class="submit-btn" onclick="saveRecordChanges()">
+                    💾 保存修改
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 关于模态框 -->
@@ -7958,6 +8369,20 @@ function updateDrawScrollDisplay(currentIndex, position) {
         }
 
         function formatTime(dateStr) {
+            if (!dateStr) return '';
+
+            // 处理 ISO 格式时间戳 (2024-01-15T14:30:25.000Z)
+            if (dateStr.includes('T')) {
+                try {
+                    const date = new Date(dateStr);
+                    if (isNaN(date.getTime())) return dateStr;
+                    return `${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+                } catch (e) {
+                    return dateStr;
+                }
+            }
+
+            // 处理普通日期格式 (2024-01-15)
             const date = new Date(dateStr);
             const now = new Date();
             const diff = now - date;
@@ -7981,6 +8406,573 @@ function updateDrawScrollDisplay(currentIndex, position) {
         // ==================== 启动 ====================
 
         init();
+
+        // ==================== 历史记录管理 ====================
+
+        // 历史记录筛选状态
+        let historyModalFilter = {
+            kidId: 'all',
+            type: 'all',
+            page: 1,
+            pageSize: 20
+        };
+
+        // 当前编辑的记录信息
+        let currentEditingRecord = {
+            kidId: null,
+            recordIndex: null,
+            recordType: null,
+            originalRecord: null
+        };
+
+        function openHistoryManagementModal() {
+            const modal = document.getElementById('history-management-modal');
+
+            // 强制显示模态框
+            modal.style.display = 'flex';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.classList.add('active');
+
+            // 填充成员选择下拉框
+            populateHistoryKidSelect();
+
+            // 重置筛选条件
+            resetHistoryModalFilter();
+
+            // 渲染列表
+            renderHistoryModalList();
+        }
+
+        function closeHistoryManagementModal() {
+            const modal = document.getElementById('history-management-modal');
+            modal.style.display = 'none';
+            modal.style.visibility = 'hidden';
+            modal.classList.remove('active');
+        }
+
+        function populateHistoryKidSelect() {
+            const select = document.getElementById('history-modal-kid-select');
+            select.innerHTML = '<option value="all">所有成员</option>';
+            
+            kids.forEach(kid => {
+                const option = document.createElement('option');
+                option.value = kid.id;
+                option.textContent = kid.name;
+                select.appendChild(option);
+            });
+        }
+
+        function applyHistoryModalFilter() {
+            historyModalFilter.kidId = document.getElementById('history-modal-kid-select').value;
+            historyModalFilter.type = document.getElementById('history-modal-type-select').value;
+            historyModalFilter.page = 1;
+            renderHistoryModalList();
+        }
+
+        function resetHistoryModalFilter() {
+            document.getElementById('history-modal-kid-select').value = 'all';
+            document.getElementById('history-modal-type-select').value = 'all';
+            historyModalFilter.kidId = 'all';
+            historyModalFilter.type = 'all';
+            historyModalFilter.page = 1;
+        }
+
+        function getFilteredHistoryRecords() {
+            let records = [];
+            
+            kids.forEach(kid => {
+                if (historyModalFilter.kidId !== 'all' && kid.id !== parseInt(historyModalFilter.kidId)) {
+                    return;
+                }
+                
+                // 获取积分历史记录（加分和扣分都在这里）
+                const pointsHistory = (kid.pointsHistory || []).map((r, idx) => {
+                    // 判断是加分还是扣分（负数points为扣分）
+                    const category = (r.points > 0 || (r.points === 0 && !r.reason?.startsWith('扣除'))) ? 'add' : 'deduct';
+                    return {
+                        ...r,
+                        kidId: kid.id,
+                        kidName: kid.name,
+                        category: category,
+                        index: idx,
+                        recordType: 'pointsHistory'
+                    };
+                });
+                
+                // 获取抽奖历史记录
+                const drawHistory = (kid.drawHistory || []).map((r, idx) => ({
+                    ...r,
+                    kidId: kid.id,
+                    kidName: kid.name,
+                    category: 'draw',
+                    index: idx,
+                    recordType: 'drawHistory'
+                }));
+                
+                // 获取兑换历史记录
+                const exchangeHistory = (kid.exchangeHistory || []).map((r, idx) => ({
+                    ...r,
+                    kidId: kid.id,
+                    kidName: kid.name,
+                    category: 'exchange',
+                    index: idx,
+                    recordType: 'exchangeHistory'
+                }));
+                
+                const allRecords = [...pointsHistory, ...drawHistory, ...exchangeHistory];
+                
+                allRecords.forEach(record => {
+                    if (historyModalFilter.type === 'all' || record.category === historyModalFilter.type) {
+                        records.push(record);
+                    }
+                });
+            });
+            
+            // 按时间倒序排列
+            records.sort((a, b) => {
+                const timeA = a.timestamp || new Date(a.date + ' ' + (a.time || '00:00:00')).getTime();
+                const timeB = b.timestamp || new Date(b.date + ' ' + (b.time || '00:00:00')).getTime();
+                return timeB - timeA;
+            });
+            
+            return records;
+        }
+
+        function renderHistoryModalList() {
+            const listDiv = document.getElementById('history-modal-list');
+            const records = getFilteredHistoryRecords();
+            
+            // 更新统计
+            updateHistoryModalStats(records);
+            
+            // 分页
+            const totalPages = Math.ceil(records.length / historyModalFilter.pageSize) || 1;
+            const startIndex = (historyModalFilter.page - 1) * historyModalFilter.pageSize;
+            const endIndex = startIndex + historyModalFilter.pageSize;
+            const pageRecords = records.slice(startIndex, endIndex);
+            
+            // 更新分页信息
+            updateHistoryModalPagination(records.length, totalPages);
+            
+            if (pageRecords.length === 0) {
+                listDiv.innerHTML = '<div class="history-empty">暂无历史记录</div>';
+                return;
+            }
+            
+            listDiv.innerHTML = pageRecords.map(record => {
+                const iconClass = record.category;
+                const icon = getRecordIcon(record.category);
+                const pointsDisplay = getPointsDisplay(record);
+
+                // 格式化日期显示
+                let dateStr = record.date;
+                if (record.date && record.date.includes('T')) {
+                    // ISO 格式时间戳，转换为可读格式
+                    try {
+                        const d = new Date(record.date);
+                        dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                    } catch (e) {
+                        dateStr = record.date;
+                    }
+                }
+
+                const editedMark = record.edited ? ' <span style="color: #FF9800;">(已编辑)</span>' : '';
+
+                return `
+                    <div class="history-item">
+                        <div class="history-item-icon ${iconClass}">${icon}</div>
+                        <div class="history-item-content">
+                            <div class="history-item-header">
+                                <span class="history-item-reason">${record.reason || record.name || '-'}${editedMark}</span>
+                                <span class="history-item-points ${iconClass}">${pointsDisplay}</span>
+                            </div>
+                            <div class="history-item-meta">
+                                <span class="history-item-kid">👤 ${record.kidName}</span>
+                                <span>📅 ${dateStr}</span>
+                            </div>
+                        </div>
+                        <button class="history-item-edit-btn" onclick="openEditRecordModal(${record.kidId}, ${record.index}, '${record.recordType}')">编辑</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateHistoryModalStats(records) {
+            document.getElementById('history-modal-total').textContent = records.length;
+            
+            let totalAdd = 0;
+            let totalDeduct = 0;
+            
+            records.forEach(record => {
+                if (record.category === 'add') {
+                    totalAdd += record.points || 0;
+                } else if (record.category === 'deduct') {
+                    totalDeduct += record.points || 0;
+                }
+            });
+            
+            document.getElementById('history-modal-add').textContent = '+' + totalAdd;
+            document.getElementById('history-modal-deduct').textContent = '-' + totalDeduct;
+        }
+
+        function updateHistoryModalPagination(totalRecords, totalPages) {
+            document.getElementById('history-page-info').textContent = 
+                `第 ${historyModalFilter.page} 页，共 ${totalPages} 页 (${totalRecords} 条记录)`;
+            
+            document.getElementById('history-prev-btn').disabled = historyModalFilter.page <= 1;
+            document.getElementById('history-next-btn').disabled = historyModalFilter.page >= totalPages;
+        }
+
+        function prevHistoryModalPage() {
+            if (historyModalFilter.page > 1) {
+                historyModalFilter.page--;
+                renderHistoryModalList();
+            }
+        }
+
+        function nextHistoryModalPage() {
+            const records = getFilteredHistoryRecords();
+            const totalPages = Math.ceil(records.length / historyModalFilter.pageSize) || 1;
+            
+            if (historyModalFilter.page < totalPages) {
+                historyModalFilter.page++;
+                renderHistoryModalList();
+            }
+        }
+
+        function getRecordIcon(category) {
+            const icons = {
+                add: '➕',
+                deduct: '➖',
+                exchange: '🎁',
+                draw: '🎰'
+            };
+            return icons[category] || '📋';
+        }
+
+        function getPointsDisplay(record) {
+            const points = record.points || 0;
+            const category = record.category;
+            
+            if (category === 'deduct') {
+                return '-' + points;
+            } else if (category === 'exchange' || category === 'draw') {
+                return '-' + points;
+            }
+            return '+' + points;
+        }
+
+        function getRecordTypeLabel(category) {
+            const labels = {
+                add: '➕ 加分',
+                deduct: '➖ 扣分',
+                exchange: '🎁 积分兑换',
+                draw: '🎰 兑奖'
+            };
+            return labels[category] || category;
+        }
+
+        function openEditRecordModal(kidId, recordIndex, recordType) {
+            currentEditingRecord.kidId = kidId;
+            currentEditingRecord.recordIndex = recordIndex;
+            currentEditingRecord.recordType = recordType;
+            
+            const kid = kids.find(k => k.id === kidId);
+            if (!kid) return;
+            
+            // 获取记录
+            let record = null;
+            let recordCategory = '';
+            
+            if (recordType === 'pointsHistory') {
+                record = {...(kid.pointsHistory[recordIndex] || {})};
+                // 判断是加分还是扣分
+                recordCategory = (record.points > 0 || (record.points === 0 && !record.reason?.startsWith('扣除'))) ? 'add' : 'deduct';
+                record.category = recordCategory;
+            } else if (recordType === 'drawHistory') {
+                record = {...(kid.drawHistory[recordIndex] || {})};
+                recordCategory = 'draw';
+                record.category = 'draw';
+            } else if (recordType === 'exchangeHistory') {
+                record = {...(kid.exchangeHistory[recordIndex] || {})};
+                recordCategory = 'exchange';
+                record.category = 'exchange';
+            }
+            
+            if (!record) {
+                alert('记录不存在');
+                return;
+            }
+            
+            currentEditingRecord.originalRecord = record;
+            currentEditingRecord.recordCategory = recordCategory;
+            
+            // 填充成员名
+            document.getElementById('edit-record-kid-name').textContent = kid.name;
+            
+            // 填充原始信息
+            document.getElementById('edit-original-type').textContent = getRecordTypeLabel(recordCategory);
+            const originalPoints = Math.abs(record.points || 0);
+            const originalSign = (recordCategory === 'deduct' || recordCategory === 'exchange' || recordCategory === 'draw') ? '-' : '+';
+            document.getElementById('edit-original-points').textContent = originalSign + originalPoints;
+            document.getElementById('edit-original-reason').textContent = record.reason || record.name || '-';
+            document.getElementById('edit-original-date').textContent = record.date;
+            
+            // 填充编辑表单
+            document.getElementById('edit-record-type').value = recordCategory;
+            document.getElementById('edit-record-points').value = Math.abs(record.points || 0);
+
+            // 处理日期显示
+            let dateValue = record.date;
+            if (dateValue && dateValue.includes('T')) {
+                // ISO 格式时间戳转换为日期格式
+                try {
+                    const d = new Date(dateValue);
+                    dateValue = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                } catch (e) {
+                    dateValue = '';
+                }
+            }
+            document.getElementById('edit-record-date').value = dateValue;
+
+            // 根据类型设置表单显示
+            onEditRecordTypeChange();
+            
+            if (recordCategory === 'exchange' || recordCategory === 'draw') {
+                document.getElementById('edit-record-reward').value = record.reason || record.name || '';
+            } else {
+                // 设置原因选择
+                const reasonSelect = document.getElementById('edit-record-reason');
+                const currentReason = record.reason || '';
+                
+                if (recordCategory === 'add') {
+                    reasonSelect.innerHTML = addReasons.map(r => {
+                        const val = r.icon + ' ' + r.name;
+                        return `<option value="${val}" ${val === currentReason ? 'selected' : ''}>${r.icon} ${r.name}</option>`;
+                    }).join('');
+                } else if (recordCategory === 'deduct') {
+                    reasonSelect.innerHTML = deductReasons.map(r => {
+                        const val = r.icon + ' ' + r.name;
+                        return `<option value="${val}" ${val === currentReason ? 'selected' : ''}>${r.icon} ${r.name}</option>`;
+                    }).join('');
+                }
+            }
+            
+            // 直接显示编辑模态框
+            const editModal = document.getElementById('edit-record-modal');
+            editModal.style.display = 'flex';
+            editModal.style.visibility = 'visible';
+            editModal.style.opacity = '1';
+            editModal.classList.add('active');
+        }
+
+        function onEditRecordTypeChange() {
+            const type = document.getElementById('edit-record-type').value;
+
+            if (type === 'exchange' || type === 'draw') {
+                document.getElementById('edit-record-reason').style.display = 'none';
+                document.getElementById('edit-reason-group').style.display = 'none';
+                document.getElementById('edit-reward-group').style.display = 'block';
+            } else {
+                document.getElementById('edit-record-reason').style.display = 'block';
+                document.getElementById('edit-reason-group').style.display = 'block';
+                document.getElementById('edit-reward-group').style.display = 'none';
+
+                // 重新填充原因选择
+                const reasonSelect = document.getElementById('edit-record-reason');
+                if (type === 'add') {
+                    reasonSelect.innerHTML = addReasons.map(r =>
+                        `<option value="${r.icon} ${r.name}">${r.icon} ${r.name}</option>`
+                    ).join('');
+                } else if (type === 'deduct') {
+                    reasonSelect.innerHTML = deductReasons.map(r =>
+                        `<option value="${r.icon} ${r.name}">${r.icon} ${r.name}</option>`
+                    ).join('');
+                }
+            }
+        }
+
+        function saveRecordChanges() {
+            const kid = kids.find(k => k.id === currentEditingRecord.kidId);
+            if (!kid) return;
+
+            const newType = document.getElementById('edit-record-type').value;
+            const newPoints = parseInt(document.getElementById('edit-record-points').value) || 0;
+            const newDateInput = document.getElementById('edit-record-date').value;
+            const newReason = document.getElementById('edit-record-reason').value;
+            const newReward = document.getElementById('edit-record-reward').value;
+
+            const oldRecord = currentEditingRecord.originalRecord;
+            const oldCategory = currentEditingRecord.recordCategory;
+            const recordIndex = currentEditingRecord.recordIndex;
+            const recordType = currentEditingRecord.recordType;
+
+            // 如果日期为空或未修改，使用原记录的时间
+            let finalDate = oldRecord.date;
+            if (newDateInput) {
+                // 用户修改了日期，检查是否与原日期不同
+                let originalDateStr = oldRecord.date;
+                if (originalDateStr && originalDateStr.includes('T')) {
+                    const d = new Date(originalDateStr);
+                    originalDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                }
+                if (newDateInput !== originalDateStr) {
+                    finalDate = newDateInput;
+                }
+            }
+
+            // 计算旧积分对总积分的影响
+            let oldPointsImpact = oldRecord.points || 0;
+
+            // 计算新积分对总积分的影响
+            let newPointsImpact = newPoints;
+            if (newType === 'add') {
+                newPointsImpact = newPoints;
+            } else {
+                newPointsImpact = -newPoints;
+            }
+
+            // 计算积分差异
+            const pointsDiff = newPointsImpact - oldPointsImpact;
+
+            // 构建新记录
+            let newRecord = {
+                date: finalDate,
+                points: newPointsImpact,
+                edited: true,
+                editCount: (oldRecord.editCount || 0) + 1,
+                lastEditTime: new Date().toISOString()
+            };
+
+            // 更新原因字段
+            if (newType === 'exchange' || newType === 'draw') {
+                newRecord.reason = newReward;
+                newRecord.name = newReward;
+            } else if (newType === 'deduct') {
+                newRecord.reason = newReason;
+            } else {
+                newRecord.reason = newReason;
+            }
+
+            // 如果类型从加分改为扣分，需要更新原因格式
+            if (newType === 'deduct' && oldCategory === 'add') {
+                newRecord.reason = '扣除：' + newReason;
+            }
+
+            // 确定新的记录数组类型
+            const newRecordType = newType === 'draw' ? 'drawHistory' :
+                                  (newType === 'exchange' ? 'exchangeHistory' : 'pointsHistory');
+            
+            if (recordType !== newRecordType) {
+                // 类型改变：删除原记录，添加到新数组
+                kid[recordType].splice(recordIndex, 1);
+                kid[newRecordType].push(newRecord);
+            } else {
+                // 类型相同：直接更新
+                kid[recordType][recordIndex] = newRecord;
+            }
+            
+            // 回滚总积分
+            if (pointsDiff !== 0) {
+                kid.totalPoints += pointsDiff;
+            }
+            
+            // 保存数据
+            saveToStorage('kids_data', kids);
+
+            // 更新显示
+            updateThreeCards();
+            renderKidsPointsSummary();
+            renderActivityList();
+
+            // 关闭模态框并刷新列表
+            closeEditRecordModal();
+            renderHistoryModalList();
+
+            alert('记录已保存');
+        }
+
+        function confirmDeleteRecord() {
+            if (!confirm('确定删除这条记录？删除后积分将回滚。')) {
+                return;
+            }
+
+            const kid = kids.find(k => k.id === currentEditingRecord.kidId);
+            if (!kid) return;
+
+            const oldRecord = currentEditingRecord.originalRecord;
+            const recordIndex = currentEditingRecord.recordIndex;
+            const recordType = currentEditingRecord.recordType;
+
+            // 计算回滚积分值
+            const pointsToRollback = -(oldRecord.points || 0);
+
+            // 删除记录
+            kid[recordType].splice(recordIndex, 1);
+
+            // 回滚积分
+            kid.totalPoints += pointsToRollback;
+
+            // 保存数据
+            saveToStorage('kids_data', kids);
+
+            // 更新显示
+            updateThreeCards();
+            renderKidsPointsSummary();
+            renderActivityList();
+
+            // 关闭模态框并刷新列表
+            closeEditRecordModal();
+            renderHistoryModalList();
+
+            alert('记录已删除');
+        }
+
+        function confirmDeleteRecord() {
+            if (!confirm('确定删除这条记录？删除后积分将回滚。')) {
+                return;
+            }
+            
+            const kid = kids.find(k => k.id === currentEditingRecord.kidId);
+            if (!kid) return;
+            
+            const oldRecord = currentEditingRecord.originalRecord;
+            const oldCategory = currentEditingRecord.recordCategory;
+            const recordIndex = currentEditingRecord.recordIndex;
+            const recordType = currentEditingRecord.recordType;
+            
+            // 计算回滚积分值
+            // pointsHistory 中：加分用正数，扣分用负数
+            // 删除时要反向操作
+            const pointsToRollback = -(oldRecord.points || 0); // 加分(正)要减回，扣分(负)要加回
+            
+            // 删除记录
+            kid[recordType].splice(recordIndex, 1);
+            
+            // 回滚积分
+            kid.totalPoints += pointsToRollback;
+            
+            // 保存数据
+            saveToStorage('kids_data', kids);
+            
+            // 更新显示
+            updateThreeCards();
+            renderKidsPointsSummary();
+            
+            // 关闭模态框并刷新列表
+            closeEditRecordModal();
+            renderHistoryModalList();
+
+            alert('记录已删除');
+        }
+
+        function closeEditRecordModal() {
+            const editModal = document.getElementById('edit-record-modal');
+            editModal.style.display = 'none';
+            editModal.style.visibility = 'hidden';
+            editModal.classList.remove('active');
+        }
     </script>
 </body>
 </html>
