@@ -3219,7 +3219,9 @@
             
             <div class="form-group" id="edit-reward-group" style="display: none;">
                 <label>奖励名称</label>
-                <input type="text" id="edit-record-reward" placeholder="输入奖励名称">
+                <select id="edit-record-reward">
+                    <option value="">-- 请选择 --</option>
+                </select>
             </div>
             
             <div class="form-group">
@@ -6530,6 +6532,12 @@ function openAddPointsModal() {
                 return;
             }
             
+            // 检查积分是否足够
+            if (kid.totalPoints < totalPoints) {
+                alert(`积分不足！当前积分：${kid.totalPoints}，需要积分：${totalPoints}`);
+                return;
+            }
+            
             // 执行兑换
             kid.totalPoints -= totalPoints;
             
@@ -6547,12 +6555,14 @@ function openAddPointsModal() {
                 id: Date.now(),
                 exchangeOptionId: optionId,
                 optionName: option.name,
+                points: -totalPoints,  // 添加 points 字段用于历史记录显示
                 pointsConsumed: option.pointsRequired,
                 quantity: quantity,
                 totalPoints: totalPoints,
                 date: operationTime,
                 category: option.category,
-                note: `${option.name} ${quantity} ${option.unit}`
+                note: `${option.name} ${quantity} ${option.unit}`,
+                reason: `${option.name} ${quantity} ${option.unit}`  // 添加 reason 字段
             };
             
             kid.exchangeHistory.push(exchangeRecord);
@@ -6908,7 +6918,7 @@ function updateDrawScrollDisplay(currentIndex, position) {
             drawAnimationTimer = setTimeout(scrollAnimation, speed);
         }
 
-        function showScrollResult(reward, kid) {
+function showScrollResult(reward, kid) {
             // 获取操作时间
             const timeInput = document.getElementById('draw-operation-time').value;
             let operationTime;
@@ -6918,6 +6928,12 @@ function updateDrawScrollDisplay(currentIndex, position) {
                 operationTime = new Date().toISOString();
             }
 
+            // 检查积分是否足够
+            if (kid.totalPoints < systemConfig.exchangeRate) {
+                alert(`积分不足！当前积分：${kid.totalPoints}，需要积分：${systemConfig.exchangeRate}`);
+                return;
+            }
+
             // 更新数据
             kid.totalPoints -= systemConfig.exchangeRate;
             kid.drawChances--;
@@ -6925,7 +6941,9 @@ function updateDrawScrollDisplay(currentIndex, position) {
             kid.drawHistory.push({
                 date: operationTime,
                 reward: reward.name,
-                pointsUsed: systemConfig.exchangeRate
+                points: -systemConfig.exchangeRate,  // 添加 points 字段用于历史记录显示
+                pointsUsed: systemConfig.exchangeRate,
+                reason: reward.name  // 添加 reason 字段
             });
 
             saveToStorage('kids_data', kids);
@@ -7281,6 +7299,12 @@ function updateDrawScrollDisplay(currentIndex, position) {
 
             const kid = kids.find(k => k.id === kidId);
             if (!kid) return;
+
+            // 检查积分是否足够
+            if (kid.totalPoints < points) {
+                alert(`积分不足！当前积分：${kid.totalPoints}，扣除积分：${points}`);
+                return;
+            }
 
             // 获取操作时间
             const timeInput = document.getElementById('deduct-points-time').value;
@@ -8507,9 +8531,10 @@ function updateDrawScrollDisplay(currentIndex, position) {
                     kidName: kid.name,
                     category: 'draw',
                     index: idx,
-                    recordType: 'drawHistory'
+                    recordType: 'drawHistory',
+                    points: r.points || r.pointsUsed || 0  // 确保 points 字段存在
                 }));
-                
+
                 // 获取兑换历史记录
                 const exchangeHistory = (kid.exchangeHistory || []).map((r, idx) => ({
                     ...r,
@@ -8517,7 +8542,8 @@ function updateDrawScrollDisplay(currentIndex, position) {
                     kidName: kid.name,
                     category: 'exchange',
                     index: idx,
-                    recordType: 'exchangeHistory'
+                    recordType: 'exchangeHistory',
+points: r.points || r.totalPoints || r.pointsConsumed || 0  // 确保 points 字段存在
                 }));
                 
                 const allRecords = [...pointsHistory, ...drawHistory, ...exchangeHistory];
@@ -8531,11 +8557,28 @@ function updateDrawScrollDisplay(currentIndex, position) {
             
             // 按时间倒序排列
             records.sort((a, b) => {
-                const timeA = a.timestamp || new Date(a.date + ' ' + (a.time || '00:00:00')).getTime();
-                const timeB = b.timestamp || new Date(b.date + ' ' + (b.time || '00:00:00')).getTime();
-                return timeB - timeA;
+                let timeA, timeB;
+
+                // 处理 ISO 格式时间戳
+                if (a.date && a.date.includes('T')) {
+                    timeA = new Date(a.date).getTime();
+                } else if (a.timestamp) {
+                    timeA = a.timestamp;
+                } else {
+                    timeA = new Date(a.date + ' ' + (a.time || '00:00:00')).getTime();
+                }
+
+                if (b.date && b.date.includes('T')) {
+                    timeB = new Date(b.date).getTime();
+                } else if (b.timestamp) {
+                    timeB = b.timestamp;
+                } else {
+                    timeB = new Date(b.date + ' ' + (b.time || '00:00:00')).getTime();
+                }
+
+                return timeB - timeA;  // 倒序：最新记录在前
             });
-            
+
             return records;
         }
 
@@ -8578,13 +8621,21 @@ function updateDrawScrollDisplay(currentIndex, position) {
                 }
 
                 const editedMark = record.edited ? ' <span style="color: #FF9800;">(已编辑)</span>' : '';
+                
+                // 为兑换和兑奖添加前缀文字
+                let reasonText = record.reason || record.name || '-';
+                if (record.category === 'exchange') {
+                    reasonText = '兑换：' + reasonText;
+                } else if (record.category === 'draw') {
+                    reasonText = '兑奖：' + reasonText;
+                }
 
                 return `
                     <div class="history-item">
                         <div class="history-item-icon ${iconClass}">${icon}</div>
                         <div class="history-item-content">
                             <div class="history-item-header">
-                                <span class="history-item-reason">${record.reason || record.name || '-'}${editedMark}</span>
+                                <span class="history-item-reason">${reasonText}${editedMark}</span>
                                 <span class="history-item-points ${iconClass}">${pointsDisplay}</span>
                             </div>
                             <div class="history-item-meta">
@@ -8603,15 +8654,15 @@ function updateDrawScrollDisplay(currentIndex, position) {
             
             let totalAdd = 0;
             let totalDeduct = 0;
-            
+
             records.forEach(record => {
                 if (record.category === 'add') {
-                    totalAdd += record.points || 0;
+                    totalAdd += Math.abs(record.points) || 0;
                 } else if (record.category === 'deduct') {
-                    totalDeduct += record.points || 0;
+                    totalDeduct += Math.abs(record.points) || 0;
                 }
             });
-            
+
             document.getElementById('history-modal-add').textContent = '+' + totalAdd;
             document.getElementById('history-modal-deduct').textContent = '-' + totalDeduct;
         }
@@ -8652,9 +8703,9 @@ function updateDrawScrollDisplay(currentIndex, position) {
         }
 
         function getPointsDisplay(record) {
-            const points = record.points || 0;
+            const points = Math.abs(record.points) || 0;
             const category = record.category;
-            
+
             if (category === 'deduct') {
                 return '-' + points;
             } else if (category === 'exchange' || category === 'draw') {
@@ -8740,7 +8791,11 @@ function updateDrawScrollDisplay(currentIndex, position) {
             onEditRecordTypeChange();
             
             if (recordCategory === 'exchange' || recordCategory === 'draw') {
-                document.getElementById('edit-record-reward').value = record.reason || record.name || '';
+                // 兑奖: reward/reason, 兑换: optionName/reason/note
+                const rewardValue = record.reward || record.optionName || record.reason || record.note?.replace(/\s+\d+\s+.+$/, '') || record.name || '';
+                
+                // 加载系统奖励池选项并设置默认值
+                loadRewardOptionsToSelect(recordCategory, rewardValue);
             } else {
                 // 设置原因选择
                 const reasonSelect = document.getElementById('edit-record-reason');
@@ -8774,6 +8829,9 @@ function updateDrawScrollDisplay(currentIndex, position) {
                 document.getElementById('edit-record-reason').style.display = 'none';
                 document.getElementById('edit-reason-group').style.display = 'none';
                 document.getElementById('edit-reward-group').style.display = 'block';
+                // 加载奖励选项（切换类型时获取当前选中的值）
+                const currentReward = document.getElementById('edit-record-reward').value;
+                loadRewardOptionsToSelect(type, currentReward);
             } else {
                 document.getElementById('edit-record-reason').style.display = 'block';
                 document.getElementById('edit-reason-group').style.display = 'block';
@@ -8791,6 +8849,31 @@ function updateDrawScrollDisplay(currentIndex, position) {
                     ).join('');
                 }
             }
+        }
+
+        function loadRewardOptionsToSelect(recordCategory, defaultValue) {
+            const select = document.getElementById('edit-record-reward');
+            if (!select) return;
+            
+            let options = [];
+            
+            if (recordCategory === 'exchange') {
+                const allOptions = DEFAULT_EXCHANGE_OPTIONS.concat(systemConfig.exchangeOptions || []);
+                options = allOptions.map(o => o.name);
+            } else if (recordCategory === 'draw') {
+                const allRewards = DEFAULT_REWARDS.concat(rewards || []);
+                options = allRewards.map(r => r.name);
+            }
+            
+            options = [...new Set(options)];
+            
+            // 构建选项，设置默认选中
+            let html = '<option value="">-- 请选择 --</option>';
+            options.forEach(name => {
+                const selected = (name === defaultValue) ? ' selected' : '';
+                html += `<option value="${name}"${selected}>${name}</option>`;
+            });
+            select.innerHTML = html;
         }
 
         function saveRecordChanges() {
