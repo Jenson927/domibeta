@@ -18,6 +18,7 @@ jobs:
           ref: main
 
       - name: Show current version
+        id: version
         run: |
           echo "=== Current index.html version line ==="
           grep -n 'about-version' index.html
