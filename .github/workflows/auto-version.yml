@@ -1,0 +1,43 @@
+name: Auto Version Increment
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/workflows/**'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Extract current version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'id="about-version">V\K[0-9.]+' index.html)
+          echo "current=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Increment patch version
+        id: increment
+        run: |
+          CURRENT="${{ steps.version.outputs.current }}"
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT"
+          PATCH=$((VERSION_PARTS[2] + 1))
+          NEW_VERSION="V${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in HTML
+        run: |
+          sed -i 's/id="about-version">.*</id="about-version">${{ steps.increment.outputs.new }}</' index.html
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add index.html
+          git commit -m "chore: bump version to ${{ steps.increment.outputs.new }}"
+          git push
