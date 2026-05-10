@@ -44,8 +44,15 @@ jobs:
 
       - name: Commit and push
         run: |
+          echo "=== Git status ==="
+          git status
+          echo "=== Git config ==="
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          echo "=== Git diff ==="
+          git diff index.html | head -20
           git add index.html
-          git commit -m "chore: bump version to ${{ steps.increment.outputs.new }}"
-          git push
+          echo "=== Git commit ==="
+          git commit -m "chore: bump version to ${{ steps.increment.outputs.new }}" || echo "No changes to commit"
+          echo "=== Git push ==="
+          git push || echo "Push failed - checking if already at latest"
