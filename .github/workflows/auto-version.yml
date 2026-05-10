@@ -32,7 +32,7 @@ jobs:
 
       - name: Update version in HTML
         run: |
-          sed -i 's/id="about-version">.*</id="about-version">${{ steps.increment.outputs.new }}</' index.html
+          sed -i "s/id=\"about-version\">V[0-9.]*/id=\"about-version\">\${{ steps.increment.outputs.new }}/" index.html
 
       - name: Commit and push
         run: |
