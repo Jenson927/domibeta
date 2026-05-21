@@ -4991,8 +4991,8 @@
 
         // 渲染儿童积分总结
         function renderKidsPointsSummary() {
-            const summary = kids.map(kid => `${kid.name}: ${kid.totalPoints}分`).join(' | ');
-            document.getElementById('kids-points-summary').textContent = summary;
+            const summary = kids.map(kid => `${kid.name}: ${kid.totalPoints < 0 ? '<span style="color:#F44336;font-weight:bold;">' + kid.totalPoints + '</span>' : kid.totalPoints}分`).join(' | ');
+            document.getElementById('kids-points-summary').innerHTML = summary;
         }
 
         // ==================== 渲染函数 ====================
@@ -5022,11 +5022,11 @@
                     ${selectedBadge}
                     ${avatarHtml}
                     <div class="kid-name">${kid.name}</div>
-                    <div class="kid-points">${kid.totalPoints} 分</div>
+                    <div class="kid-points" style="${kid.totalPoints < 0 ? 'color: #F44336; font-weight: bold;' : ''}">${kid.totalPoints} 分</div>
                     <div class="kid-actions" style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                         <button onclick="event.stopPropagation(); selectKidAndAddPoints(${kid.id});" style="padding: 8px 16px; font-size: 14px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">➕ 加分</button>
                         <button onclick="event.stopPropagation(); selectKidAndDeductPoints(${kid.id});" style="padding: 8px 16px; font-size: 14px; background: #F44336; color: white; border: none; border-radius: 8px; cursor: pointer;">➖ 扣分</button>
-                        <button onclick="event.stopPropagation(); selectKidAndDraw(${kid.id});" style="padding: 8px 16px; font-size: 14px; background: ${kid.drawChances > 0 ? '#FF9800' : '#9E9E9E'}; color: white; border: none; border-radius: 8px; cursor: ${kid.drawChances > 0 ? 'pointer' : 'not-allowed'};" ${kid.drawChances > 0 ? '' : 'disabled'}>${kid.drawChances > 0 ? '兑奖(积分可兑' + kid.drawChances + '次)' : '兑奖(还差' + (systemConfig.exchangeRate - (kid.totalPoints % systemConfig.exchangeRate)) + '积分)'}</button>
+                        <button onclick="event.stopPropagation(); selectKidAndDraw(${kid.id});" style="padding: 8px 16px; font-size: 14px; background: ${kid.drawChances > 0 ? '#FF9800' : '#9E9E9E'}; color: white; border: none; border-radius: 8px; cursor: ${kid.drawChances > 0 ? 'pointer' : 'not-allowed'};" ${kid.drawChances > 0 ? '' : 'disabled'}>${kid.drawChances > 0 ? '兑奖(积分可兑' + kid.drawChances + '次)' : (kid.totalPoints < 0 ? '兑奖(欠分' + Math.abs(kid.totalPoints) + '积分)' : '兑奖(还差' + (systemConfig.exchangeRate - ((kid.totalPoints % systemConfig.exchangeRate) + systemConfig.exchangeRate) % systemConfig.exchangeRate) + '积分)')}</button>
                     </div>
                     </div>
                 `;
@@ -5425,15 +5425,19 @@ function cropAvatar() {
 
             // 更新进度条
             const exchangeRate = systemConfig.exchangeRate;
-            const progress = (kid.totalPoints % exchangeRate) / exchangeRate * 100;
-            const remaining = exchangeRate - (kid.totalPoints % exchangeRate);
+            const positiveMod = ((kid.totalPoints % exchangeRate) + exchangeRate) % exchangeRate;
+            const progress = positiveMod / exchangeRate * 100;
+            const remaining = exchangeRate - positiveMod;
 
-            document.getElementById('progress-fill').style.width = `${progress}%`;
-            document.getElementById('progress-text').textContent = `${Math.round(progress)}%`;
+            const displayProgress = kid.totalPoints < 0 ? 0 : progress;
+            document.getElementById('progress-fill').style.width = `${displayProgress}%`;
+            document.getElementById('progress-text').textContent = `${Math.round(displayProgress)}%`;
 
             // 修复抽奖提示
             let progressInfo = '';
-            if (kid.drawChances > 0) {
+            if (kid.totalPoints < 0) {
+                progressInfo = `⚠️ 当前欠分 ${Math.abs(kid.totalPoints)} 分，需充值 ${Math.abs(kid.totalPoints) + remaining} 分才能兑奖`;
+            } else if (kid.drawChances > 0) {
                 progressInfo = `🎯 已有 ${kid.drawChances} 次抽奖机会可用`;
                 if (remaining < exchangeRate && remaining > 0) {
                     progressInfo += `\n    再积攒 ${remaining} 分可获新机会`;
@@ -6274,7 +6278,7 @@ let isDragging = false;
                 
                 card.innerHTML = `
                     <div class="carousel-name">${kid.name}</div>
-                    <div class="carousel-points">${kid.totalPoints} 分</div>
+<div class="carousel-points" style="${kid.totalPoints < 0 ? 'color: #F44336; font-weight: bold;' : ''}">${kid.totalPoints} 分</div>
                     <div class="carousel-avatar">${avatarHtml}</div>
                     <div class="carousel-actions">
                         <button class="carousel-btn carousel-btn-add" onclick="event.stopPropagation(); openAddPointsModal()">➕ 加分</button>
@@ -6283,7 +6287,9 @@ let isDragging = false;
                         <button class="carousel-btn carousel-btn-draw ${kid.drawChances > 0 ? '' : 'disabled'}" onclick="event.stopPropagation(); ${kid.drawChances > 0 ? 'openDrawModal()' : ''}" ${kid.drawChances > 0 ? '' : 'disabled'}>${
                     kid.drawChances > 0 
                         ? '兑奖(积分可兑' + kid.drawChances + '次)' 
-                        : '兑奖(还差' + (systemConfig.exchangeRate - (kid.totalPoints % systemConfig.exchangeRate)) + '积分)'
+                        : (kid.totalPoints < 0 
+                            ? '兑奖(欠分' + Math.abs(kid.totalPoints) + '积分)' 
+                            : '兑奖(还差' + (systemConfig.exchangeRate - ((kid.totalPoints % systemConfig.exchangeRate) + systemConfig.exchangeRate) % systemConfig.exchangeRate) + '积分)')
                 }</button>
                     </div>
                 `;
@@ -6369,7 +6375,7 @@ let isDragging = false;
                     btn.textContent = `兑奖(积分可兑${kid.drawChances}次)`;
                 } else {
                     btn.classList.add('disabled');
-                    const remaining = systemConfig.exchangeRate - (kid.totalPoints % systemConfig.exchangeRate);
+                    const remaining = systemConfig.exchangeRate - ((kid.totalPoints % systemConfig.exchangeRate) + systemConfig.exchangeRate) % systemConfig.exchangeRate;
                     btn.textContent = `兑奖(还差${remaining}积分)`;
                 }
             }
@@ -7301,10 +7307,13 @@ function showScrollResult(reward, kid) {
             const kid = kids.find(k => k.id === kidId);
             if (!kid) return;
 
-            // 检查积分是否足够
+            // 检查积分是否足够，不足时弹出确认
             if (kid.totalPoints < points) {
-                alert(`积分不足！当前积分：${kid.totalPoints}，扣除积分：${points}`);
-                return;
+                const deficit = points - kid.totalPoints;
+                const afterDeduct = kid.totalPoints - points;
+                if (!confirm(`积分不足！当前积分：${kid.totalPoints}，扣除积分：${points}\n扣除后积分将变为：${afterDeduct}分（欠分${deficit}分）\n确认扣除吗？`)) {
+                    return;
+                }
             }
 
             // 获取操作时间
