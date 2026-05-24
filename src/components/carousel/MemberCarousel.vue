@@ -7,6 +7,13 @@ const kidsStore = useKidsStore()
 const viewportRef = ref<HTMLElement | null>(null)
 const kids = computed(() => kidsStore.kids)
 
+const emit = defineEmits<{
+  addPoints: []
+  deductPoints: []
+  exchange: []
+  draw: []
+}>()
+
 function scrollToIndex(index: number, smooth = true) {
   const el = viewportRef.value
   if (!el || kids.value.length === 0) return
@@ -98,7 +105,13 @@ function onMouseUp() {
           class="flex-none w-full snap-start"
         >
           <div class="bg-white/95 mx-2 p-[20px] rounded-[15px] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] text-center box-border">
-            <MemberCard :kid="kid" />
+            <MemberCard
+              :kid="kid"
+              @add-points="emit('addPoints')"
+              @deduct-points="emit('deductPoints')"
+              @exchange="emit('exchange')"
+              @draw="emit('draw')"
+            />
           </div>
         </div>
       </div>
