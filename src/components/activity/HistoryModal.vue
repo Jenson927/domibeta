@@ -2,9 +2,18 @@
 import { ref, computed } from 'vue'
 import { AppModal } from '@/components/common'
 import { useKidsStore } from '@/stores'
+import { useAddReasonsStore } from '@/stores/addReasonsStore'
+import { useDeductReasonsStore } from '@/stores/deductReasonsStore'
+import { useConfigStore } from '@/stores/configStore'
+import { useRewardsStore } from '@/stores/rewardsStore'
+import type { PointsHistoryItem, DrawHistoryItem, ExchangeHistoryItem } from '@/types/kid'
 
 const isOpen = defineModel<boolean>({ default: false })
 const kidsStore = useKidsStore()
+const addReasonsStore = useAddReasonsStore()
+const deductReasonsStore = useDeductReasonsStore()
+const configStore = useConfigStore()
+const rewardsStore = useRewardsStore()
 
 const activeTab = ref('all')
 const selectedKidId = ref<string>('all')
@@ -159,7 +168,189 @@ function deleteRecord(record: HistoryRecord) {
 
   // Remove from history array
   kid[record.recordType as 'pointsHistory' | 'drawHistory' | 'exchangeHistory'].splice(record.index, 1)
+  kidsStore.updateDrawChances()
+}
 
+// ---- Edit Record Feature ----
+
+const showEditModal = ref(false)
+const editKidId = ref(0)
+const editRecordType = ref('pointsHistory')
+const editRecordIndex = ref(0)
+const editOriginalCategory = ref('')
+const editOriginalRecord = ref<any>(null)
+
+const editType = ref('add')
+const editPoints = ref(0)
+const editReason = ref('')
+const editReward = ref('')
+const editDate = ref('')
+const editDateChanged = ref(false)
+
+function toDateStr(isoStr: string): string {
+  if (!isoStr) return ''
+  try {
+    const d = new Date(isoStr)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  } catch {
+    return ''
+  }
+}
+
+function openEdit(record: HistoryRecord) {
+  const kid = kidsStore.kids.find(k => k.id === record.kidId)
+  if (!kid) return
+
+  editKidId.value = record.kidId
+  editRecordType.value = record.recordType
+  editRecordIndex.value = record.index
+  editOriginalCategory.value = record.category
+
+  // Capture the full original record
+  const arr = kid[record.recordType as 'pointsHistory' | 'drawHistory' | 'exchangeHistory']
+  const orig = arr[record.index]
+  if (!orig) return
+  editOriginalRecord.value = { ...orig }
+
+  // Pre-fill form
+  editType.value = record.category
+  editPoints.value = Math.abs(record.points)
+  editDate.value = toDateStr(orig.date)
+  editDateChanged.value = false
+
+  // Pre-fill reason/reward
+  if (record.category === 'add') {
+    editReason.value = record.reason || ''
+    editReward.value = ''
+  } else if (record.category === 'deduct') {
+    // Strip "扣除：" prefix if present
+    editReason.value = (record.reason || '').replace(/^扣除：/, '')
+    editReward.value = ''
+  } else if (record.category === 'exchange') {
+    editReason.value = ''
+    editReward.value = (orig as any).optionName || record.reason || ''
+  } else if (record.category === 'draw') {
+    editReason.value = ''
+    editReward.value = (orig as any).reward || record.reason || ''
+  }
+
+  showEditModal.value = true
+}
+
+const addReasons = computed(() => addReasonsStore.allAddReasons)
+const deductReasons = computed(() => deductReasonsStore.allDeductReasons)
+const allExchangeOptions = computed(() => {
+  const defs = configStore.allExchangeOptions
+  return defs.map(o => ({ name: o.name, value: o.name }))
+})
+const allRewards = computed(() => rewardsStore.allRewards.map(r => ({ name: r.name, value: r.name })))
+
+function saveEdit() {
+  const kid = kidsStore.kids.find(k => k.id === editKidId.value)
+  if (!kid || !editOriginalRecord.value) return
+
+  const orig = editOriginalRecord.value
+  const oldType = editOriginalCategory.value
+  const newType = editType.value
+  const newPoints = editPoints.value || 0
+
+  // Calculate old points impact
+  let oldImpact = orig.points || 0
+
+  // Calculate new points impact
+  let newImpact = newType === 'add' ? newPoints : -newPoints
+
+  const pointsDiff = newImpact - oldImpact
+
+  // Build the new record with proper type
+  const base = {
+    date: editDateChanged.value && editDate.value ? editDate.value : orig.date,
+    edited: true as const,
+    editCount: (orig.editCount || 0) + 1,
+    lastEditTime: new Date().toISOString()
+  }
+
+  if (newType === 'add' || newType === 'deduct') {
+    const reason = newType === 'add' ? (editReason.value || '') : '扣除：' + (editReason.value || '')
+    const newRecord: PointsHistoryItem = {
+      ...base,
+      points: newImpact,
+      reason
+    }
+    applyRecord(newRecord)
+  } else if (newType === 'exchange') {
+    const newRecord: ExchangeHistoryItem = {
+      ...base,
+      id: (orig as ExchangeHistoryItem).id || Date.now(),
+      exchangeOptionId: (orig as ExchangeHistoryItem).exchangeOptionId || 0,
+      optionName: editReward.value || '',
+      points: newImpact,
+      pointsConsumed: newPoints,
+      quantity: 1,
+      totalPoints: newPoints,
+      date: base.date,
+      category: newType,
+      note: editReward.value || '',
+      reason: editReward.value || ''
+    }
+    applyRecord(newRecord)
+  } else if (newType === 'draw') {
+    const newRecord: DrawHistoryItem = {
+      ...base,
+      reward: editReward.value || '',
+      points: newImpact,
+      pointsUsed: newPoints,
+      reason: editReward.value || ''
+    }
+    applyRecord(newRecord)
+  }
+}
+
+function applyRecord(newRecord: PointsHistoryItem | DrawHistoryItem | ExchangeHistoryItem) {
+  const kid = kidsStore.kids.find(k => k.id === editKidId.value)
+  if (!kid || !editOriginalRecord.value) return
+
+  const orig = editOriginalRecord.value
+  const newRecordType = editType.value === 'draw' ? 'drawHistory' :
+                        editType.value === 'exchange' ? 'exchangeHistory' : 'pointsHistory'
+
+  const oldArr = kid[editRecordType.value as 'pointsHistory' | 'drawHistory' | 'exchangeHistory']
+  const oldIdx = editRecordIndex.value
+
+  // Calculate points diff
+  let oldImpact = orig.points || 0
+  let newImpact = (newRecord as any).points || 0
+  const pointsDiff = newImpact - oldImpact
+
+  if (editRecordType.value !== newRecordType) {
+    oldArr.splice(oldIdx, 1)
+    kid[newRecordType].push(newRecord as any)
+  } else {
+    oldArr[oldIdx] = newRecord as any
+  }
+
+  if (pointsDiff !== 0) {
+    kid.totalPoints += pointsDiff
+  }
+
+  kidsStore.updateDrawChances()
+  showEditModal.value = false
+}
+
+function deleteFromEdit() {
+  showEditModal.value = false
+  // Find the record in the current list matching the editing record
+  const kid = kidsStore.kids.find(k => k.id === editKidId.value)
+  if (!kid) return
+  const arr = kid[editRecordType.value as 'pointsHistory' | 'drawHistory' | 'exchangeHistory']
+  const record = arr[editRecordIndex.value]
+  if (!record) return
+
+  if (!confirm('确定删除这条记录？删除后积分将回滚。')) return
+
+  const pointsToRollback = -(record.points || 0)
+  arr.splice(editRecordIndex.value, 1)
+  kid.totalPoints += pointsToRollback
   kidsStore.updateDrawChances()
 }
 
@@ -228,7 +419,8 @@ function clearHistory() {
             👤 {{ record.kidName }} · {{ formatDate(record.date) }}
           </div>
         </div>
-        <button class="p-1 bg-[#F44336] text-white rounded-[8px] text-[13px] cursor-pointer" @click="deleteRecord(record)">删除</button>
+        <button class="p-1 px-2 bg-[#2196F3] text-white rounded-[8px] text-[13px] cursor-pointer mr-1" @click="openEdit(record)">编辑</button>
+        <button class="p-1 px-2 bg-[#F44336] text-white rounded-[8px] text-[13px] cursor-pointer" @click="deleteRecord(record)">删除</button>
       </div>
     </div>
 
@@ -243,5 +435,95 @@ function clearHistory() {
 
     <!-- Clear history button -->
     <button v-if="kidsStore.currentKid" class="w-full p-2 mt-3 bg-[#F44336] text-white border-none rounded-[8px] cursor-pointer" @click="clearHistory">🗑️ 清空当前成员历史</button>
+  </AppModal>
+
+  <!-- Edit Record Modal -->
+  <AppModal v-model="showEditModal" title="✏️ 编辑记录" :z-index="1100">
+    <div v-if="editOriginalRecord" class="py-2">
+      <!-- Original record info -->
+      <div class="bg-gray-50 rounded-[10px] p-3 mb-4 text-[13px]">
+        <div class="flex justify-between mb-1">
+          <span class="text-[#666]">原始类型：</span>
+          <span class="font-bold">{{ editOriginalCategory === 'add' ? '➕ 加分' : editOriginalCategory === 'deduct' ? '➖ 扣分' : editOriginalCategory === 'exchange' ? '🎁 兑换' : '🎰 兑奖' }}</span>
+        </div>
+        <div class="flex justify-between mb-1">
+          <span class="text-[#666]">原始积分：</span>
+          <span class="font-bold" :class="editOriginalCategory === 'add' ? 'text-[#4CAF50]' : 'text-[#F44336]'">
+            {{ editOriginalCategory === 'add' ? '+' : '-' }}{{ Math.abs(editOriginalRecord.points || 0) }}
+          </span>
+        </div>
+        <div class="flex justify-between mb-1">
+          <span class="text-[#666]">原始原因：</span>
+          <span class="font-bold">{{ editOriginalRecord.reason || editOriginalRecord.reward || editOriginalRecord.optionName || '-' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[#666]">原始日期：</span>
+          <span class="font-bold">{{ formatDate(editOriginalRecord.date) }}</span>
+        </div>
+      </div>
+
+      <!-- Edit form -->
+      <div class="mb-3">
+        <label class="block text-[#333] mb-1 text-[14px] font-bold">记录类型</label>
+        <select v-model="editType" class="w-full p-2 border-2 border-[#E0E0E0] rounded-[8px] text-[14px]">
+          <option value="add">➕ 加分</option>
+          <option value="deduct">➖ 扣分</option>
+          <option value="exchange">🎁 积分兑换</option>
+          <option value="draw">🎰 兑奖</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-[#333] mb-1 text-[14px] font-bold">积分变化</label>
+        <input v-model.number="editPoints" type="number" min="0" placeholder="输入积分值" class="w-full p-2 border-2 border-[#E0E0E0] rounded-[8px] text-[14px]" />
+      </div>
+
+      <!-- Reason selector (add/deduct) -->
+      <div v-if="editType === 'add' || editType === 'deduct'" class="mb-3">
+        <label class="block text-[#333] mb-1 text-[14px] font-bold">原因/说明</label>
+        <select v-model="editReason" class="w-full p-2 border-2 border-[#E0E0E0] rounded-[8px] text-[14px]">
+          <option value="">-- 请选择 --</option>
+          <option
+            v-for="r in editType === 'add' ? addReasons : deductReasons"
+            :key="r.id"
+            :value="r.icon + ' ' + r.name"
+          >
+            {{ r.icon }} {{ r.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Reward selector (exchange/draw) -->
+      <div v-if="editType === 'exchange' || editType === 'draw'" class="mb-3">
+        <label class="block text-[#333] mb-1 text-[14px] font-bold">{{ editType === 'exchange' ? '兑换选项' : '奖励名称' }}</label>
+        <select v-model="editReward" class="w-full p-2 border-2 border-[#E0E0E0] rounded-[8px] text-[14px]">
+          <option value="">-- 请选择 --</option>
+          <option
+            v-for="opt in editType === 'exchange' ? allExchangeOptions : allRewards"
+            :key="opt.value"
+            :value="opt.value"
+          >
+            {{ opt.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-[#333] mb-1 text-[14px] font-bold">日期</label>
+        <input v-model="editDate" type="date" class="w-full p-2 border-2 border-[#E0E0E0] rounded-[8px] text-[14px]" @change="editDateChanged = true" />
+        <p class="text-[#999] text-[12px] mt-1">不修改则保持原时间</p>
+      </div>
+
+      <!-- Points impact warning -->
+      <div class="bg-[#FFF3E0] text-[#E65100] p-3 rounded-[10px] text-[13px] mb-4">
+        ⚠️ 修改此记录将影响成员总积分
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-2">
+        <button class="flex-1 p-2 bg-[#F44336] text-white rounded-[8px] cursor-pointer text-[14px]" @click="deleteFromEdit">🗑️ 删除记录</button>
+        <button class="flex-1 p-2 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer text-[14px]" @click="saveEdit">💾 保存修改</button>
+      </div>
+    </div>
   </AppModal>
 </template>
