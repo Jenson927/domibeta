@@ -1,0 +1,11 @@
+node_modules
+dist
+*.local
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sw?
+coverage
+test-results
+playwright-report

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Microsoft YaHei", "PingFang SC", "sans-serif";
+  --color-app-green: #4CAF50;
+  --color-app-green-dark: #388E3C;
+  --color-app-red: #F44336;
+  --color-app-red-dark: #D32F2F;
+  --color-app-blue: #2196F3;
+  --color-app-blue-dark: #1976D2;
+  --color-app-orange: #FF9800;
+  --color-app-orange-dark: #F57C00;
+  --color-app-purple: #9C27B0;
+  --color-app-purple-dark: #7B1FA2;
+  --color-app-gray: #9E9E9E;
+  --color-app-gray-dark: #757575;
+}

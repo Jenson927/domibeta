@@ -1,4 +1,4 @@
-name: 🚀 Auto Version Update
+name: Auto Version Update
 
 on:
   push:
@@ -17,46 +17,41 @@ jobs:
         with:
           ref: main
 
-      - name: Show current version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get current version
         id: version
         run: |
-          echo "=== Current index.html version line ==="
-          grep -n 'about-version' index.html
-          echo "=== Extracted version ==="
-          VERSION=$(grep -oP 'id="about-version">V\K[0-9.]+' index.html)
-          echo "Found version: $VERSION"
-          echo "current=$VERSION" >> $GITHUB_OUTPUT
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "Found version: $CURRENT"
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
 
       - name: Increment patch version
         id: increment
         run: |
           CURRENT="${{ steps.version.outputs.current }}"
-          echo "Current version: $CURRENT"
-          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT"
-          PATCH=$((VERSION_PARTS[2] + 1))
-          NEW_VERSION="V${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+          IFS='.' read -ra PARTS <<< "$CURRENT"
+          PATCH=$((PARTS[2] + 1))
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$PATCH"
           echo "New version: $NEW_VERSION"
           echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Update version in HTML
+      - name: Update version in package.json
         run: |
-          echo "=== Before sed ==="
-          grep 'about-version' index.html
-          sed -i "s/id=\"about-version\">V[0-9.]*</id=\"about-version\">\${{ steps.increment.outputs.new }}</" index.html
-          echo "=== After sed ==="
-          grep 'about-version' index.html
+          NEW="${{ steps.increment.outputs.new }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$NEW';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
 
       - name: Commit and push
         run: |
-          echo "=== Git status ==="
-          git status
-          echo "=== Git config ==="
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          echo "=== Git diff ==="
-          git diff index.html | head -20
-          git add index.html
-          echo "=== Git commit ==="
+          git add package.json
           git commit -m "chore: bump version to ${{ steps.increment.outputs.new }}" || echo "No changes to commit"
-          echo "=== Git push ==="
-          git push || echo "Push failed - checking if already at latest"
+          git push || echo "Push failed"
