@@ -6,6 +6,9 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
   base: '/domibeta/',
+  server: {
+    host: true
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

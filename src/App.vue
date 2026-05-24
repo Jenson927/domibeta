@@ -117,7 +117,7 @@ onUnmounted(() => {
 
       <!-- Current kid panel -->
       <div v-if="kidsStore.currentKid" class="mb-4">
-        <h2 class="text-[20px] font-bold text-[#333] mb-3">
+        <h2 class="text-[20px] font-bold text-[#222] mb-3">
           {{ kidsStore.currentKid.name }} 的小天地 🌟
         </h2>
 
