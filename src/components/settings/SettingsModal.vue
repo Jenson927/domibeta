@@ -13,6 +13,7 @@ import KidsManagement from '@/components/settings/KidsManagement.vue'
 import RiddlesManagement from '@/components/settings/RiddlesManagement.vue'
 import QuotesManagement from '@/components/settings/QuotesManagement.vue'
 import AboutModal from '@/components/settings/AboutModal.vue'
+import HistoryModal from '@/components/activity/HistoryModal.vue'
 
 const isOpen = defineModel<boolean>({ default: false })
 const configStore = useConfigStore()
@@ -33,6 +34,7 @@ const showKidsManagement = ref(false)
 const showRiddlesManagement = ref(false)
 const showQuotesManagement = ref(false)
 const showAbout = ref(false)
+const showHistoryManagement = ref(false)
 
 // Password settings
 const newPassword = ref('')
@@ -190,6 +192,7 @@ function clearAllData() {
 
       <!-- Data -->
       <div v-if="activeTab === 'data'">
+        <button class="w-full p-2 mb-2 bg-[#607D8B] text-white rounded-[8px] cursor-pointer" @click="showHistoryManagement = true">📋 历史记录管理</button>
         <button class="w-full p-2 mb-2 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer" @click="showImportExport = true">数据导入导出</button>
         <button class="w-full p-2 mb-2 bg-[#F44336] text-white rounded-[8px] cursor-pointer" @click="clearAllData">⚠️ 清除所有数据</button>
       </div>
@@ -207,4 +210,5 @@ function clearAllData() {
   <RiddlesManagement v-model="showRiddlesManagement" />
   <QuotesManagement v-model="showQuotesManagement" />
   <AboutModal v-model="showAbout" />
+  <HistoryModal v-model="showHistoryManagement" />
 </template>
