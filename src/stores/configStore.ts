@@ -18,6 +18,7 @@ export const useConfigStore = defineStore('config', {
           customRiddles: [],
           exchangeOptions: [],
           customQuotes: [],
+          riddleAnswerDelay: 3,
           ...stored
         }
       : {
@@ -29,7 +30,8 @@ export const useConfigStore = defineStore('config', {
           password: '',
           customRiddles: [],
           exchangeOptions: [],
-          customQuotes: []
+          customQuotes: [],
+          riddleAnswerDelay: 3
         }
 
     // Ensure exchangeOptions are initialized
@@ -132,6 +134,11 @@ export const useConfigStore = defineStore('config', {
 
     removeCustomQuote(index: number) {
       this.systemConfig.customQuotes.splice(index, 1)
+      saveToStorage(STORAGE_KEYS.SYSTEM_CONFIG, this.systemConfig)
+    },
+
+    updateRiddleAnswerDelay(delay: number) {
+      this.systemConfig.riddleAnswerDelay = delay
       saveToStorage(STORAGE_KEYS.SYSTEM_CONFIG, this.systemConfig)
     }
   }

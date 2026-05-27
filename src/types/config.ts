@@ -17,6 +17,7 @@ export interface SystemConfig {
   customRiddles: Riddle[]
   exchangeOptions: ExchangeOption[]
   customQuotes: string[]
+  riddleAnswerDelay: number // Delay in seconds before showing answer
 }
 
 // Re-export ExchangeOption for convenience

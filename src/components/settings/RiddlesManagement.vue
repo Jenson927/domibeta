@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { AppModal } from '@/components/common'
 import { useConfigStore } from '@/stores'
 
@@ -9,6 +9,21 @@ const configStore = useConfigStore()
 const newQuestion = ref('')
 const newAnswer = ref('')
 const showAddForm = ref(false)
+const answerDelay = ref(3)
+const showSaveSuccess = ref(false)
+
+watch(
+  () => configStore.systemConfig.riddleAnswerDelay,
+  (newDelay) => {
+    answerDelay.value = newDelay
+  }
+)
+
+watch(isOpen, (newVal) => {
+  if (newVal) {
+    answerDelay.value = configStore.systemConfig.riddleAnswerDelay
+  }
+})
 
 function addRiddle() {
   if (!newQuestion.value.trim() || !newAnswer.value.trim()) return
@@ -23,11 +38,49 @@ function deleteRiddle(index: number) {
     configStore.removeCustomRiddle(index)
   }
 }
+
+function saveAnswerDelay() {
+  const delay = Math.max(0, Math.min(60, answerDelay.value))
+  answerDelay.value = delay
+  configStore.updateRiddleAnswerDelay(delay)
+  
+  showSaveSuccess.value = true
+  setTimeout(() => {
+    showSaveSuccess.value = false
+  }, 2000)
+}
 </script>
 
 <template>
   <AppModal v-model="isOpen" title="脑筋急转弯管理">
     <p class="text-[14px] text-[#666] mb-4">内容池：760条内置 + {{ configStore.systemConfig.customRiddles.length }}条自定义</p>
+
+    <div class="mb-4 p-3 bg-[#FFF3E0] rounded-[10px]">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-[14px] text-[#333]">答案显示延迟</span>
+        <input
+          v-model.number="answerDelay"
+          type="number"
+          min="0"
+          max="60"
+          class="w-[80px] p-1 border rounded-[6px] text-center text-[14px]"
+        />
+        <span class="text-[12px] text-[#FF9800]">秒</span>
+        <button
+          class="ml-auto p-1 bg-[#2196F3] text-white rounded-[6px] text-[12px] cursor-pointer"
+          @click="saveAnswerDelay"
+        >
+          保存
+        </button>
+        <span
+          v-if="showSaveSuccess"
+          class="text-[12px] text-[#4CAF50] ml-1"
+        >
+          ✓ 已保存
+        </span>
+      </div>
+      <p class="text-[12px] text-[#666]">设置点击"查看答案"后延迟多久显示答案，默认3秒</p>
+    </div>
 
     <button v-if="!showAddForm" class="w-full p-2 mb-4 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer" @click="showAddForm = true">➕ 添加自定义脑筋急转弯</button>
 

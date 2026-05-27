@@ -67,9 +67,9 @@ function formatTime(dateStr: string): string {
 
 <template>
   <div class="mt-4">
-    <h3 class="text-[#333] font-bold mb-2">
+    <h3 class="text-[#333] font-bold mb-2 flex items-center justify-between clear-both">
       活动记录
-      <button class="float-right p-[8px_16px] text-[14px] bg-[#2196F3] text-white border-none rounded-[8px] cursor-pointer" @click="emit('openHistory')">
+      <button class="p-[8px_16px] text-[14px] bg-[#2196F3] text-white border-none rounded-[8px] cursor-pointer" @click="emit('openHistory')">
         查看历史记录
       </button>
     </h3>
