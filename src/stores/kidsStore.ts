@@ -161,7 +161,7 @@ export const useKidsStore = defineStore('kids', {
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
-    drawReward(operationTime?: string) {
+    drawReward(operationTime?: string, reward?: import('@/types/reward').Reward) {
       const kid = this.currentKid
       if (!kid) return null
 
@@ -172,22 +172,22 @@ export const useKidsStore = defineStore('kids', {
       if (kid.drawChances <= 0) return null
 
       const date = operationTime || new Date().toISOString()
-      const reward = rewardsStore.getRandomReward()
+      const selectedReward = reward || rewardsStore.getRandomReward()
 
       kid.totalPoints -= configStore.exchangeRate
       kid.drawChances--
 
       kid.drawHistory.push({
         date,
-        reward: reward.name,
+        reward: selectedReward.name,
         points: -configStore.exchangeRate,
         pointsUsed: configStore.exchangeRate,
-        reason: reward.name,
-        icon: reward.icon
+        reason: selectedReward.name,
+        icon: selectedReward.icon
       })
 
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
-      return reward
+      return selectedReward
     },
 
     exchangePoints(optionId: number, quantity: number, operationTime?: string) {

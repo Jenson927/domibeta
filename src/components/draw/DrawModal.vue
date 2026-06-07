@@ -36,9 +36,8 @@ function onDrawComplete() {
   isDrawing.value = false
   showResult.value = true
 
-  // Actually perform the draw in the store
   const time = operationTime.value ? new Date(operationTime.value).toISOString() : undefined
-  kidsStore.drawReward(time)
+  kidsStore.drawReward(time, drawResult.value || undefined)
 }
 
 function resetDraw() {

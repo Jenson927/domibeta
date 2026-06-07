@@ -33,10 +33,18 @@ function doExchange() {
 
   const result = kidsStore.exchangePoints(selectedOptionId.value, quantity.value, time)
   if (result) {
-    exchangeResult.value = `兑换成功！获得：${result.note}\n消耗积分：${result.totalPoints}`
+    isOpen.value = false
+    resetForm()
   } else {
-    exchangeResult.value = '兑换失败：积分不足'
+    exchangeResult.value = 'fail'
   }
+}
+
+function resetForm() {
+  selectedOptionId.value = 0
+  quantity.value = 1
+  operationTime.value = ''
+  exchangeResult.value = null
 }
 </script>
 
@@ -95,14 +103,13 @@ function doExchange() {
     </FormGroup>
 
     <!-- Result -->
-    <div v-if="exchangeResult" class="p-3 rounded-[10px] mb-4 text-center font-bold"
-      :class="exchangeResult.includes('成功') ? 'bg-[#E8F5E9] text-[#4CAF50]' : 'bg-[#FFEBEE] text-[#F44336]'">
-      {{ exchangeResult }}
+    <div v-if="exchangeResult === 'fail'" class="p-3 rounded-[10px] mb-4 text-center font-bold bg-[#FFEBEE] text-[#F44336]">
+      兑换失败：积分不足
     </div>
 
     <!-- Submit -->
     <button
-      v-if="selectedOptionId && !exchangeResult?.includes('成功')"
+      v-if="selectedOptionId"
       class="w-full p-3 bg-[#FF9800] text-white border-none rounded-[10px] cursor-pointer font-bold text-[16px] hover:bg-[#F57C00] transition-colors"
       @click="doExchange"
     >
