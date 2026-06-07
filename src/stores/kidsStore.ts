@@ -142,7 +142,7 @@ export const useKidsStore = defineStore('kids', {
       const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
       kid.drawChances = Math.max(0, newChances)
 
-      kid.pointsHistory.push({ date, points, reason, icon })
+      kid.pointsHistory = [...kid.pointsHistory, { date, points, reason, icon }]
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -157,7 +157,7 @@ export const useKidsStore = defineStore('kids', {
       const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
       kid.drawChances = Math.max(0, newChances)
 
-      kid.pointsHistory.push({ date, points: -points, reason: '扣除：' + reason, icon })
+      kid.pointsHistory = [...kid.pointsHistory, { date, points: -points, reason: '扣除：' + reason, icon }]
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -177,14 +177,14 @@ export const useKidsStore = defineStore('kids', {
       kid.totalPoints -= configStore.exchangeRate
       kid.drawChances--
 
-      kid.drawHistory.push({
+      kid.drawHistory = [...kid.drawHistory, {
         date,
         reward: selectedReward.name,
         points: -configStore.exchangeRate,
         pointsUsed: configStore.exchangeRate,
         reason: selectedReward.name,
         icon: selectedReward.icon
-      })
+      }]
 
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
       return selectedReward
@@ -223,7 +223,7 @@ export const useKidsStore = defineStore('kids', {
         icon: option.icon
       }
 
-      kid.exchangeHistory.push(exchangeRecord)
+      kid.exchangeHistory = [...kid.exchangeHistory, exchangeRecord]
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
       return exchangeRecord
     },

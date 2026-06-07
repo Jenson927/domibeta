@@ -11,16 +11,15 @@ const emit = defineEmits<{
   complete: []
 }>()
 
-// Imperative DOM refs - NOT Vue reactive for animation
 const scrollContainerRef = ref<HTMLElement | null>(null)
-let animationTimer: number | null = null
+let animationId: number | null = null
 
 onMounted(() => {
   startAnimation()
 })
 
 onUnmounted(() => {
-  if (animationTimer) clearTimeout(animationTimer)
+  if (animationId) cancelAnimationFrame(animationId)
 })
 
 function startAnimation() {
@@ -31,29 +30,49 @@ function startAnimation() {
   const spins = 3 + Math.floor(Math.random() * 2)
   const totalSteps = spins * rewards.length + targetIndex
   let currentStep = 0
-  let speed = 40
 
-  function scrollAnimation() {
-    currentStep++
-    const currentIndex = currentStep % rewards.length
-    updateDisplay(currentIndex)
+  const baseInterval = 40
+  const totalDuration = 3000
+  const stepDurations: number[] = []
 
-    // Gradual slowdown
-    if (currentStep > totalSteps - 4) {
-      speed += 30
-    } else if (currentStep > totalSteps - 8) {
-      speed += 15
-    }
-
-    if (currentStep < totalSteps) {
-      animationTimer = window.setTimeout(scrollAnimation, speed)
-    } else {
-      // Animation complete
-      emit('complete')
-    }
+  for (let i = 0; i < totalSteps; i++) {
+    const progress = i / totalSteps
+    const eased = easeOutCubic(progress)
+    stepDurations[i] = baseInterval + eased * (totalDuration / totalSteps - baseInterval) * 3
   }
 
-  animationTimer = window.setTimeout(scrollAnimation, speed)
+  let lastTime = 0
+  let accumulated = 0
+
+  function animate(timestamp: number) {
+    if (!lastTime) lastTime = timestamp
+    const delta = timestamp - lastTime
+    lastTime = timestamp
+    accumulated += delta
+
+    const interval = currentStep < totalSteps ? stepDurations[currentStep] : stepDurations[stepDurations.length - 1]
+
+    if (accumulated >= interval) {
+      accumulated = 0
+      currentStep++
+      const currentIndex = currentStep % rewards.length
+      updateDisplay(currentIndex)
+
+      if (currentStep >= totalSteps) {
+        animationId = null
+        emit('complete')
+        return
+      }
+    }
+
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animationId = requestAnimationFrame(animate)
+}
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
 }
 
 function updateDisplay(currentIndex: number) {
