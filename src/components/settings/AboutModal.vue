@@ -2,6 +2,8 @@
 import { AppModal } from '@/components/common'
 
 const isOpen = defineModel<boolean>({ default: false })
+
+const appVersion = __APP_VERSION__
 </script>
 
 <template>
@@ -9,7 +11,7 @@ const isOpen = defineModel<boolean>({ default: false })
     <div class="text-center py-6">
       <div class="text-[24px] font-bold mb-2">🎁 积分管理系统</div>
       <div class="text-[14px] text-[#666] mb-4">Domibeta - Vue 3 版</div>
-      <div class="text-[12px] text-[#999] mb-2">版本：V1.0.10</div>
+      <div class="text-[12px] text-[#999] mb-2">版本：V{{ appVersion }}</div>
       <div class="text-[12px] text-[#999] mb-1">作者：jensen927</div>
       <div class="text-[12px] text-[#999] mb-4">框架：Vue 3 + Vite + Pinia + TypeScript + Tailwind CSS</div>
       <div class="bg-[#E3F2FD] rounded-[10px] p-4 text-[14px] text-[#333]">

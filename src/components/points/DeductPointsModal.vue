@@ -8,7 +8,7 @@ const isOpen = defineModel<boolean>({ default: false })
 const kidsStore = useKidsStore()
 const deductReasonsStore = useDeductReasonsStore()
 
-const points = ref(10)
+const points = ref(0)
 const selectedReasonId = ref(0)
 const customReason = ref('')
 const useCustomReason = ref(false)
@@ -61,7 +61,7 @@ function doDeduct(reason: string, icon: string) {
 }
 
 function resetForm() {
-  points.value = 10
+  points.value = 0
   selectedReasonId.value = 0
   customReason.value = ''
   useCustomReason.value = false
@@ -100,16 +100,6 @@ function resetForm() {
     </div>
 
     <template v-if="!showConfirm">
-      <FormGroup label="扣除积分数量">
-        <input
-          v-model.number="points"
-          type="number"
-          min="1"
-          max="1000"
-          class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#F44336] transition-colors"
-        />
-      </FormGroup>
-
       <FormGroup label="扣分原因">
         <select
           v-model.number="selectedReasonId"
@@ -118,7 +108,7 @@ function resetForm() {
         >
           <option value="0" disabled>请选择原因</option>
           <option v-for="reason in deductReasonsStore.allDeductReasons" :key="reason.id" :value="reason.id">
-            {{ reason.icon }} {{ reason.name }} ({{ reason.category }})
+            {{ reason.icon }} {{ reason.name }} (-{{ reason.points }}分)
           </option>
         </select>
         <div class="flex items-center gap-2 mt-2">
@@ -133,6 +123,18 @@ function resetForm() {
           type="text"
           placeholder="请输入自定义原因"
           class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#F44336] transition-colors"
+        />
+      </FormGroup>
+
+      <FormGroup label="扣除积分数量">
+        <input
+          v-model.number="points"
+          type="number"
+          min="1"
+          max="1000"
+          class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#F44336] transition-colors"
+          :class="{ 'bg-[#F5F5F5] cursor-not-allowed': !useCustomReason }"
+          :disabled="!useCustomReason"
         />
       </FormGroup>
 

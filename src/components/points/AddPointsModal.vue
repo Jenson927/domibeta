@@ -8,7 +8,7 @@ const isOpen = defineModel<boolean>({ default: false })
 const kidsStore = useKidsStore()
 const addReasonsStore = useAddReasonsStore()
 
-const points = ref(100)
+const points = ref(0)
 const selectedReasonId = ref(0)
 const customReason = ref('')
 const useCustomReason = ref(false)
@@ -41,7 +41,7 @@ function submit() {
 }
 
 function resetForm() {
-  points.value = 100
+  points.value = 0
   selectedReasonId.value = 0
   customReason.value = ''
   useCustomReason.value = false
@@ -54,16 +54,6 @@ function resetForm() {
     <p class="text-[#666] text-[14px] mb-[15px]">
       为 <span class="text-[#4CAF50] font-bold">{{ kidsStore.currentKid?.name }}</span> 添加积分
     </p>
-
-    <FormGroup label="添加积分数量">
-      <input
-        v-model.number="points"
-        type="number"
-        min="1"
-        max="1000"
-        class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#4CAF50] transition-colors"
-      />
-    </FormGroup>
 
     <FormGroup label="加分原因">
       <select
@@ -88,6 +78,18 @@ function resetForm() {
         type="text"
         placeholder="请输入自定义原因"
         class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#4CAF50] transition-colors"
+      />
+    </FormGroup>
+
+    <FormGroup label="添加积分数量">
+      <input
+        v-model.number="points"
+        type="number"
+        min="1"
+        max="1000"
+        class="w-full p-3 text-[16px] border-2 border-[#E0E0E0] rounded-[10px] outline-none focus:border-[#4CAF50] transition-colors"
+        :class="{ 'bg-[#F5F5F5] cursor-not-allowed': !useCustomReason }"
+        :disabled="!useCustomReason"
       />
     </FormGroup>
 
