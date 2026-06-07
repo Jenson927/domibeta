@@ -3,10 +3,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,10 +17,57 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.increment.outputs.new }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Get current version
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "Found version: $CURRENT"
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+
+      - name: Increment patch version
+        id: increment
+        run: |
+          CURRENT="${{ steps.version.outputs.current }}"
+          IFS='.' read -ra PARTS <<< "$CURRENT"
+          PATCH=$((PARTS[2] + 1))
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in package.json
+        run: |
+          NEW="${{ steps.increment.outputs.new }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$NEW';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.increment.outputs.new }}" || echo "No changes to commit"
+          git push || echo "Push failed"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: version
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
