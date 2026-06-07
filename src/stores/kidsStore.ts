@@ -4,7 +4,11 @@ import { STORAGE_KEYS } from '@/types/localStorage'
 import { DEFAULT_KIDS } from '@/data/defaultKids'
 import { useConfigStore } from './configStore'
 import { useRewardsStore } from './rewardsStore'
-import type { Kid, ExchangeHistoryItem } from '@/types/kid'
+import type { Kid, ExchangeHistoryItem, PointsHistoryItem, DrawHistoryItem } from '@/types/kid'
+
+function replaceKid(this: { kids: Kid[] }, kidId: number, updater: (kid: Kid) => Kid) {
+  this.kids = this.kids.map(k => k.id === kidId ? updater(k) : k)
+}
 
 export const useKidsStore = defineStore('kids', {
   state: () => {
@@ -125,9 +129,7 @@ export const useKidsStore = defineStore('kids', {
     },
 
     editKidName(id: number, newName: string) {
-      const kid = this.kids.find(k => k.id === id)
-      if (!kid || !newName.trim()) return
-      kid.name = newName.trim()
+      replaceKid.call(this, id, kid => ({ ...kid, name: newName.trim() }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -136,13 +138,16 @@ export const useKidsStore = defineStore('kids', {
       if (!kid) return
 
       const date = operationTime || new Date().toISOString()
-      kid.totalPoints += points
-
       const configStore = useConfigStore()
-      const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
-      kid.drawChances = Math.max(0, newChances)
+      const newChances = Math.floor((kid.totalPoints + points) / configStore.exchangeRate)
+      const newRecord: PointsHistoryItem = { date, points, reason, icon }
 
-      kid.pointsHistory = [...kid.pointsHistory, { date, points, reason, icon }]
+      replaceKid.call(this, kid.id, k => ({
+        ...k,
+        totalPoints: k.totalPoints + points,
+        drawChances: Math.max(0, newChances),
+        pointsHistory: [...k.pointsHistory, newRecord]
+      }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -151,13 +156,16 @@ export const useKidsStore = defineStore('kids', {
       if (!kid) return
 
       const date = operationTime || new Date().toISOString()
-      kid.totalPoints -= points
-
       const configStore = useConfigStore()
-      const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
-      kid.drawChances = Math.max(0, newChances)
+      const newChances = Math.floor((kid.totalPoints - points) / configStore.exchangeRate)
+      const newRecord: PointsHistoryItem = { date, points: -points, reason: '扣除：' + reason, icon }
 
-      kid.pointsHistory = [...kid.pointsHistory, { date, points: -points, reason: '扣除：' + reason, icon }]
+      replaceKid.call(this, kid.id, k => ({
+        ...k,
+        totalPoints: k.totalPoints - points,
+        drawChances: Math.max(0, newChances),
+        pointsHistory: [...k.pointsHistory, newRecord]
+      }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -173,19 +181,21 @@ export const useKidsStore = defineStore('kids', {
 
       const date = operationTime || new Date().toISOString()
       const selectedReward = reward || rewardsStore.getRandomReward()
-
-      kid.totalPoints -= configStore.exchangeRate
-      kid.drawChances--
-
-      kid.drawHistory = [...kid.drawHistory, {
+      const newRecord: DrawHistoryItem = {
         date,
         reward: selectedReward.name,
         points: -configStore.exchangeRate,
         pointsUsed: configStore.exchangeRate,
         reason: selectedReward.name,
         icon: selectedReward.icon
-      }]
+      }
 
+      replaceKid.call(this, kid.id, k => ({
+        ...k,
+        totalPoints: k.totalPoints - configStore.exchangeRate,
+        drawChances: k.drawChances - 1,
+        drawHistory: [...k.drawHistory, newRecord]
+      }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
       return selectedReward
     },
@@ -202,12 +212,7 @@ export const useKidsStore = defineStore('kids', {
       if (kid.totalPoints < totalPoints) return null
 
       const date = operationTime || new Date().toISOString()
-      kid.totalPoints -= totalPoints
-
-      // Recalculate draw chances
-      const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
-      kid.drawChances = Math.max(0, newChances)
-
+      const newChances = Math.floor((kid.totalPoints - totalPoints) / configStore.exchangeRate)
       const exchangeRecord: ExchangeHistoryItem = {
         id: Date.now(),
         exchangeOptionId: optionId,
@@ -223,33 +228,36 @@ export const useKidsStore = defineStore('kids', {
         icon: option.icon
       }
 
-      kid.exchangeHistory = [...kid.exchangeHistory, exchangeRecord]
+      replaceKid.call(this, kid.id, k => ({
+        ...k,
+        totalPoints: k.totalPoints - totalPoints,
+        drawChances: Math.max(0, newChances),
+        exchangeHistory: [...k.exchangeHistory, exchangeRecord]
+      }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
       return exchangeRecord
     },
 
     updateAvatar(kidId: number, avatarData: string) {
-      const kid = this.kids.find(k => k.id === kidId)
-      if (!kid) return
-      // Avatar stored as custom property on kid object
-      (kid as Kid & { avatar?: string }).avatar = avatarData
+      replaceKid.call(this, kidId, kid => ({ ...kid, avatar: avatarData }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
     clearHistory(kidId: number) {
-      const kid = this.kids.find(k => k.id === kidId)
-      if (!kid) return
-      kid.pointsHistory = []
-      kid.drawHistory = []
-      kid.exchangeHistory = []
+      replaceKid.call(this, kidId, kid => ({
+        ...kid,
+        pointsHistory: [],
+        drawHistory: [],
+        exchangeHistory: []
+      }))
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
     updateDrawChances() {
       const configStore = useConfigStore()
-      this.kids.forEach(kid => {
+      this.kids = this.kids.map(kid => {
         const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
-        kid.drawChances = Math.max(0, newChances)
+        return { ...kid, drawChances: Math.max(0, newChances) }
       })
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     }
