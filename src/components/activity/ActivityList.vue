@@ -7,7 +7,6 @@ const addReasonsStore = useAddReasonsStore()
 const deductReasonsStore = useDeductReasonsStore()
 const configStore = useConfigStore()
 const rewardsStore = useRewardsStore()
-const kid = computed(() => kidsStore.currentKid)
 
 const emit = defineEmits<{
   openHistory: []
@@ -45,11 +44,13 @@ interface ActivityItem {
 }
 
 const recentActivities = computed(() => {
-  if (!kid.value) return []
+  const kidId = kidsStore.currentKidId
+  const currentKid = kidsStore.kids.find(k => k.id === kidId)
+  if (!currentKid) return []
 
   const items: ActivityItem[] = []
 
-  kid.value.pointsHistory.forEach(item => {
+  currentKid.pointsHistory.forEach(item => {
     const isAdd = item.points > 0
     const icon = item.icon || (isAdd ? getAddIcon(item.reason) : getDeductIcon(item.reason))
     items.push({
@@ -60,7 +61,7 @@ const recentActivities = computed(() => {
     })
   })
 
-  kid.value.drawHistory.forEach(item => {
+  currentKid.drawHistory.forEach(item => {
     const icon = item.icon || getDrawIcon(item.reward)
     items.push({
       date: item.date,
@@ -70,7 +71,7 @@ const recentActivities = computed(() => {
     })
   })
 
-  kid.value.exchangeHistory.forEach(item => {
+  currentKid.exchangeHistory.forEach(item => {
     const icon = item.icon || getExchangeIcon(item.note)
     items.push({
       date: item.date,
