@@ -14,7 +14,7 @@ const newCategory = ref('学习')
 const newPoints = ref(100)
 const showAddForm = ref(false)
 
-const ADD_CATEGORIES = ['学习', '生活', '品德', '运动', '其他']
+const ADD_CATEGORIES = ['学习', '生活', '品德', '运动', '行为', '其他']
 
 const categoryOptions = computed(() => {
   const existingCats = addReasonsStore.categories

@@ -2,7 +2,7 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { AppModal, FormGroup } from '@/components/common'
 import { useKidsStore, useConfigStore, useRewardsStore } from '@/stores'
-import DrawScroll from './DrawScroll.vue'
+import DrawWheel from './DrawWheel.vue'
 import DrawResult from './DrawResult.vue'
 import DrawParticles from './DrawParticles.vue'
 import type { Reward } from '@/types/reward'
@@ -27,9 +27,6 @@ function startDraw() {
   isDrawing.value = true
   drawResult.value = reward
   showResult.value = false
-
-  // The DrawScroll component handles animation via imperative DOM
-  // It will call onDrawComplete when done
 }
 
 function onDrawComplete() {
@@ -63,8 +60,8 @@ onUnmounted(() => {
         | 兑奖机会：{{ kid.drawChances }}次
       </p>
 
-      <!-- Draw scroll (imperative animation) -->
-      <DrawScroll
+      <!-- Spinning wheel -->
+      <DrawWheel
         v-if="isDrawing && drawResult"
         :rewards="rewardsStore.allRewards"
         :target-reward="drawResult"
