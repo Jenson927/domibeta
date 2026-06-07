@@ -8,8 +8,14 @@ export const useDeductReasonsStore = defineStore('deductReasons', {
   state: () => {
     const stored = loadFromStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL)
     const deductReasons = stored ? mergeWithDefaults(stored, DEFAULT_DEDUCT_REASONS) : [...DEFAULT_DEDUCT_REASONS]
-    if (stored && stored.length < DEFAULT_DEDUCT_REASONS.length) {
-      saveToStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL, deductReasons)
+    if (stored) {
+      deductReasons.forEach(reason => {
+        if (!reason.category) reason.category = '其他'
+        if (reason.points === undefined || reason.points === null) reason.points = 50
+      })
+      if (stored.length < DEFAULT_DEDUCT_REASONS.length) {
+        saveToStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL, deductReasons)
+      }
     }
     return { deductReasons }
   },

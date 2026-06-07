@@ -14,6 +14,7 @@ export const useAddReasonsStore = defineStore('addReasons', {
       // Compatibility: ensure every reason has category field
       addReasons.forEach(reason => {
         if (!reason.category) reason.category = '其他'
+        if (reason.points === undefined || reason.points === null) reason.points = 100
       })
       if (stored.length < DEFAULT_ADD_REASONS.length) {
         saveToStorage(STORAGE_KEYS.REASONS_POOL, addReasons)

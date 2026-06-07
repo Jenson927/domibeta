@@ -38,6 +38,7 @@ interface HistoryRecord {
   points: number
   reason: string
   edited?: boolean
+  icon: string
 }
 
 const allRecords = computed<HistoryRecord[]>(() => {
@@ -48,6 +49,13 @@ const allRecords = computed<HistoryRecord[]>(() => {
 
     kid.pointsHistory.forEach((item, idx) => {
       const category = item.points > 0 ? 'add' : 'deduct'
+      let icon = item.icon
+      if (!icon) {
+        const reasonText = item.reason.replace(/^扣除：/, '')
+        icon = item.points > 0
+          ? (addReasonsStore.allAddReasons.find(r => reasonText === r.name || reasonText.includes(r.name))?.icon || '➕')
+          : (deductReasonsStore.allDeductReasons.find(r => reasonText === r.name || reasonText.includes(r.name))?.icon || '➖')
+      }
       records.push({
         kidId: kid.id,
         kidName: kid.name,
@@ -57,11 +65,17 @@ const allRecords = computed<HistoryRecord[]>(() => {
         date: item.date,
         points: item.points,
         reason: item.reason,
-        edited: item.edited
+        edited: item.edited,
+        icon
       })
     })
 
     kid.drawHistory.forEach((item, idx) => {
+      let icon = item.icon
+      if (!icon) {
+        const rewardName = item.reward || item.reason
+        icon = rewardsStore.allRewards.find(r => rewardName === r.name || rewardName.includes(r.name))?.icon || '🎰'
+      }
       records.push({
         kidId: kid.id,
         kidName: kid.name,
@@ -71,11 +85,17 @@ const allRecords = computed<HistoryRecord[]>(() => {
         date: item.date,
         points: -(item.pointsUsed || 0),
         reason: item.reward || item.reason,
-        edited: item.edited
+        edited: item.edited,
+        icon
       })
     })
 
     kid.exchangeHistory.forEach((item, idx) => {
+      let icon = item.icon
+      if (!icon) {
+        const noteName = item.note || item.reason
+        icon = configStore.allExchangeOptions.find(o => noteName === o.name || noteName.includes(o.name))?.icon || '🎁'
+      }
       records.push({
         kidId: kid.id,
         kidName: kid.name,
@@ -85,7 +105,8 @@ const allRecords = computed<HistoryRecord[]>(() => {
         date: item.date,
         points: -(item.totalPoints || 0),
         reason: item.note || item.reason,
-        edited: item.edited
+        edited: item.edited,
+        icon
       })
     })
   })
@@ -128,11 +149,6 @@ function formatDate(dateStr: string): string {
   }
   const d = new Date(dateStr)
   return `${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-function getIcon(category: string): string {
-  const icons: Record<string, string> = { add: '➕', deduct: '➖', exchange: '🎁', draw: '🎰' }
-  return icons[category] || '📋'
 }
 
 function getPointsDisplay(record: HistoryRecord): string {
@@ -272,13 +288,22 @@ function saveEdit() {
 
   if (newType === 'add' || newType === 'deduct') {
     const reason = newType === 'add' ? (editReason.value || '') : '扣除：' + (editReason.value || '')
+    const reasonName = editReason.value.replace(/^[^\s]+\s/, '')
+    let icon = orig.icon
+    if (newType === 'add') {
+      icon = addReasonsStore.allAddReasons.find(r => reasonName === r.name || reasonName.includes(r.name) || editReason.value === r.name)?.icon || orig.icon || '➕'
+    } else {
+      icon = deductReasonsStore.allDeductReasons.find(r => reasonName === r.name || reasonName.includes(r.name) || editReason.value === r.name)?.icon || orig.icon || '➖'
+    }
     const newRecord: PointsHistoryItem = {
       ...base,
       points: newImpact,
-      reason
+      reason,
+      icon
     }
     applyRecord(newRecord)
   } else if (newType === 'exchange') {
+    const exchangeIcon = configStore.allExchangeOptions.find(o => o.name === editReward.value || editReward.value.includes(o.name))?.icon || orig.icon || '🎁'
     const newRecord: ExchangeHistoryItem = {
       ...base,
       id: (orig as ExchangeHistoryItem).id || Date.now(),
@@ -291,16 +316,19 @@ function saveEdit() {
       date: base.date,
       category: newType,
       note: editReward.value || '',
-      reason: editReward.value || ''
+      reason: editReward.value || '',
+      icon: exchangeIcon
     }
     applyRecord(newRecord)
   } else if (newType === 'draw') {
+    const drawIcon = rewardsStore.allRewards.find(r => r.name === editReward.value || editReward.value.includes(r.name))?.icon || orig.icon || '🎰'
     const newRecord: DrawHistoryItem = {
       ...base,
       reward: editReward.value || '',
       points: newImpact,
       pointsUsed: newPoints,
-      reason: editReward.value || ''
+      reason: editReward.value || '',
+      icon: drawIcon
     }
     applyRecord(newRecord)
   }
@@ -406,7 +434,7 @@ function clearHistory() {
         :key="`${record.kidId}-${record.recordType}-${record.index}-${record.date}`"
         class="flex items-center gap-2 p-3 mb-2 bg-gray-50 rounded-[10px]"
       >
-        <div class="text-[20px]">{{ getIcon(record.category) }}</div>
+        <div class="text-[20px]">{{ record.icon }}</div>
         <div class="flex-1">
           <div class="flex justify-between items-center">
             <span class="text-[14px] font-bold text-[#333]">

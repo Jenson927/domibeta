@@ -1,10 +1,9 @@
-// Reason data models - mirrors localStorage 'reasons_pool' and 'deduct_reasons_pool'
-
 export interface AddReason {
   id: number
   name: string
   icon: string
   category: string
+  points: number
 }
 
 export interface DeductReason {
@@ -12,4 +11,5 @@ export interface DeductReason {
   name: string
   icon: string
   category: string
+  points: number
 }

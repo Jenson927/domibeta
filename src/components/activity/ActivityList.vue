@@ -1,49 +1,85 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useKidsStore } from '@/stores'
+import { useKidsStore, useAddReasonsStore, useDeductReasonsStore, useConfigStore, useRewardsStore } from '@/stores'
 
 const kidsStore = useKidsStore()
+const addReasonsStore = useAddReasonsStore()
+const deductReasonsStore = useDeductReasonsStore()
+const configStore = useConfigStore()
+const rewardsStore = useRewardsStore()
 const kid = computed(() => kidsStore.currentKid)
 
 const emit = defineEmits<{
   openHistory: []
 }>()
 
-// Combined activity items (most recent first, limited to 10)
+function getAddIcon(reason: string): string {
+  const cleanReason = reason.replace(/^[^\s]+\s/, '')
+  const found = addReasonsStore.allAddReasons.find(r => cleanReason === r.name || cleanReason.includes(r.name))
+  return found?.icon || '➕'
+}
+
+function getDeductIcon(reason: string): string {
+  const cleanReason = reason.replace(/^扣除：/, '').replace(/^[^\s]+\s/, '')
+  const found = deductReasonsStore.allDeductReasons.find(r => cleanReason === r.name || cleanReason.includes(r.name))
+  return found?.icon || '➖'
+}
+
+function getDrawIcon(reward: string): string {
+  const cleanReward = reward.replace(/^[^\s]+\s/, '')
+  const found = rewardsStore.allRewards.find(r => cleanReward === r.name || cleanReward.includes(r.name))
+  return found?.icon || '🎰'
+}
+
+function getExchangeIcon(note: string): string {
+  const cleanNote = note.replace(/^[^\s]+\s/, '')
+  const found = configStore.allExchangeOptions.find(o => cleanNote === o.name || cleanNote.includes(o.name))
+  return found?.icon || '🎁'
+}
+
+interface ActivityItem {
+  date: string
+  text: string
+  type: 'add' | 'deduct' | 'exchange' | 'draw'
+  icon: string
+}
+
 const recentActivities = computed(() => {
   if (!kid.value) return []
 
-  const items: { date: string; text: string; type: 'add' | 'deduct' | 'exchange' | 'draw' }[] = []
+  const items: ActivityItem[] = []
 
-  // Points history
   kid.value.pointsHistory.forEach(item => {
     const isAdd = item.points > 0
+    const icon = item.icon || (isAdd ? getAddIcon(item.reason) : getDeductIcon(item.reason))
     items.push({
       date: item.date,
       text: `${item.reason} ${isAdd ? '+' : ''}${item.points}分`,
-      type: isAdd ? 'add' : 'deduct'
+      type: isAdd ? 'add' : 'deduct',
+      icon
     })
   })
 
-  // Draw history
   kid.value.drawHistory.forEach(item => {
+    const icon = item.icon || getDrawIcon(item.reward)
     items.push({
       date: item.date,
       text: `兑奖：${item.reward} (-${item.pointsUsed}分)`,
-      type: 'draw'
+      type: 'draw',
+      icon
     })
   })
 
-  // Exchange history
   kid.value.exchangeHistory.forEach(item => {
+    const icon = item.icon || getExchangeIcon(item.note)
     items.push({
       date: item.date,
       text: `兑换：${item.note} (-${item.totalPoints}分)`,
-      type: 'exchange'
+      type: 'exchange',
+      icon
     })
   })
 
-  // Sort by date descending
   items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return items.slice(0, 10)
@@ -91,7 +127,7 @@ function formatTime(dateStr: string): string {
             'text-[#FF9800]': activity.type === 'exchange'
           }"
         >
-          {{ activity.text }}
+          {{ activity.icon }} {{ activity.text }}
         </span>
         <span class="text-[12px] text-[#999]">{{ formatTime(activity.date) }}</span>
       </div>

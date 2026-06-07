@@ -131,35 +131,33 @@ export const useKidsStore = defineStore('kids', {
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
-    addPoints(points: number, reason: string, operationTime?: string) {
+    addPoints(points: number, reason: string, operationTime?: string, icon?: string) {
       const kid = this.currentKid
       if (!kid) return
 
       const date = operationTime || new Date().toISOString()
       kid.totalPoints += points
 
-      // Recalculate draw chances
       const configStore = useConfigStore()
       const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
       kid.drawChances = Math.max(0, newChances)
 
-      kid.pointsHistory.push({ date, points, reason })
+      kid.pointsHistory.push({ date, points, reason, icon })
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
-    deductPoints(points: number, reason: string, operationTime?: string) {
+    deductPoints(points: number, reason: string, operationTime?: string, icon?: string) {
       const kid = this.currentKid
       if (!kid) return
 
       const date = operationTime || new Date().toISOString()
       kid.totalPoints -= points
 
-      // Recalculate draw chances
       const configStore = useConfigStore()
       const newChances = Math.floor(kid.totalPoints / configStore.exchangeRate)
       kid.drawChances = Math.max(0, newChances)
 
-      kid.pointsHistory.push({ date, points: -points, reason: '扣除：' + reason })
+      kid.pointsHistory.push({ date, points: -points, reason: '扣除：' + reason, icon })
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
     },
 
@@ -184,7 +182,8 @@ export const useKidsStore = defineStore('kids', {
         reward: reward.name,
         points: -configStore.exchangeRate,
         pointsUsed: configStore.exchangeRate,
-        reason: reward.name
+        reason: reward.name,
+        icon: reward.icon
       })
 
       saveToStorage(STORAGE_KEYS.KIDS_DATA, this.kids)
@@ -220,7 +219,8 @@ export const useKidsStore = defineStore('kids', {
         date,
         category: option.category,
         note: `${option.name} ${quantity} ${option.unit}`,
-        reason: `${option.name} ${quantity} ${option.unit}`
+        reason: `${option.name} ${quantity} ${option.unit}`,
+        icon: option.icon
       }
 
       kid.exchangeHistory.push(exchangeRecord)

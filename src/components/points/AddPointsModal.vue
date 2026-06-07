@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { AppModal, FormGroup } from '@/components/common'
 import { useKidsStore, useAddReasonsStore } from '@/stores'
 
@@ -14,10 +14,19 @@ const customReason = ref('')
 const useCustomReason = ref(false)
 const operationTime = ref('')
 
+watch(selectedReasonId, (newId) => {
+  if (newId) {
+    const reason = addReasonsStore.allAddReasons.find(r => r.id === newId)
+    if (reason) points.value = reason.points
+  }
+})
+
 function submit() {
-  const reason = useCustomReason.value
-    ? customReason.value
-    : addReasonsStore.allAddReasons.find(r => r.id === selectedReasonId.value)?.name || '未知原因'
+  const selectedReason = useCustomReason.value
+    ? null
+    : addReasonsStore.allAddReasons.find(r => r.id === selectedReasonId.value)
+  const reason = selectedReason?.name || (useCustomReason.value ? customReason.value : '未知原因')
+  const icon = selectedReason?.icon || '➕'
 
   if (!reason) return
   if (points.value <= 0) return
@@ -26,7 +35,7 @@ function submit() {
     ? new Date(operationTime.value).toISOString()
     : undefined
 
-  kidsStore.addPoints(points.value, reason, time)
+  kidsStore.addPoints(points.value, reason, time, icon)
   isOpen.value = false
   resetForm()
 }
@@ -64,7 +73,7 @@ function resetForm() {
       >
         <option value="0" disabled>请选择原因</option>
         <option v-for="reason in addReasonsStore.allAddReasons" :key="reason.id" :value="reason.id">
-          {{ reason.icon }} {{ reason.name }} ({{ reason.category }})
+          {{ reason.icon }} {{ reason.name }} (+{{ reason.points }}分)
         </option>
       </select>
       <div class="flex items-center gap-2 mt-2">

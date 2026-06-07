@@ -18,6 +18,11 @@ const deductReasonsStore = useDeductReasonsStore()
 
 const importError = ref('')
 const importSuccess = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function triggerImport() {
+  fileInput.value?.click()
+}
 
 function handleExport() {
   const data = exportAllData()
@@ -71,11 +76,19 @@ async function handleImport(event: Event) {
     <!-- Import section -->
     <FormGroup label="导入数据">
       <input
+        ref="fileInput"
         type="file"
         accept=".json"
-        class="w-full text-[14px]"
+        class="hidden"
         @change="handleImport"
       />
+      <button
+        class="w-full p-3 bg-[#2196F3] text-white border-none rounded-[10px] cursor-pointer font-bold text-[16px] hover:bg-[#1976D2] transition-colors"
+        @click="triggerImport"
+      >
+        📤 导入数据
+      </button>
+      <p class="text-[#999] text-[12px] mt-2">从JSON文件恢复数据（将覆盖当前数据）</p>
       <p v-if="importError" class="text-[#F44336] text-[14px] mt-2">{{ importError }}</p>
       <p v-if="importSuccess" class="text-[#4CAF50] text-[14px] mt-2">✅ 数据导入成功！</p>
     </FormGroup>

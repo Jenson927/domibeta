@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { AppModal, FormGroup } from '@/components/common'
 import { useKidsStore, useDeductReasonsStore } from '@/stores'
 
@@ -15,39 +15,47 @@ const useCustomReason = ref(false)
 const operationTime = ref('')
 const showConfirm = ref(false)
 
+watch(selectedReasonId, (newId) => {
+  if (newId) {
+    const reason = deductReasonsStore.allDeductReasons.find(r => r.id === newId)
+    if (reason) points.value = reason.points
+  }
+})
+
 function submit() {
-  const reason = useCustomReason.value
-    ? customReason.value
-    : deductReasonsStore.allDeductReasons.find(r => r.id === selectedReasonId.value)?.name || '未知原因'
+  const selectedReason = useCustomReason.value
+    ? null
+    : deductReasonsStore.allDeductReasons.find(r => r.id === selectedReasonId.value)
+  const reason = selectedReason?.name || (useCustomReason.value ? customReason.value : '未知原因')
 
   if (!reason) return
   if (points.value <= 0) return
 
-  // Check if this will result in negative points
   const kid = kidsStore.currentKid
   if (kid && kid.totalPoints - points.value < 0) {
     showConfirm.value = true
     return
   }
 
-  doDeduct(reason)
+  doDeduct(reason, selectedReason?.icon || '➖')
 }
 
 function confirmDeduct() {
-  const reason = useCustomReason.value
-    ? customReason.value
-    : deductReasonsStore.allDeductReasons.find(r => r.id === selectedReasonId.value)?.name || '未知原因'
+  const selectedReason = useCustomReason.value
+    ? null
+    : deductReasonsStore.allDeductReasons.find(r => r.id === selectedReasonId.value)
+  const reason = selectedReason?.name || (useCustomReason.value ? customReason.value : '未知原因')
 
-  doDeduct(reason)
+  doDeduct(reason, selectedReason?.icon || '➖')
   showConfirm.value = false
 }
 
-function doDeduct(reason: string) {
+function doDeduct(reason: string, icon: string) {
   const time = operationTime.value
     ? new Date(operationTime.value).toISOString()
     : undefined
 
-  kidsStore.deductPoints(points.value, reason, time)
+  kidsStore.deductPoints(points.value, reason, time, icon)
   isOpen.value = false
   resetForm()
 }

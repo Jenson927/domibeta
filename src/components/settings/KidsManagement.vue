@@ -13,11 +13,21 @@ const emit = defineEmits<{
 const newKidName = ref('')
 const editingKidId = ref<number | null>(null)
 const editingName = ref('')
+const showAddForm = ref(false)
+
+function startAdd() {
+  showAddForm.value = true
+  newKidName.value = ''
+}
 
 function addKid() {
-  if (!newKidName.value.trim()) return
+  if (!newKidName.value.trim()) {
+    alert('请输入成员名称')
+    return
+  }
   kidsStore.addKid(newKidName.value.trim())
   newKidName.value = ''
+  showAddForm.value = false
 }
 
 function startEditName(kidId: number, currentName: string) {
@@ -66,9 +76,15 @@ function deleteKid(kidId: number) {
         <button v-if="kidsStore.kids.length > 2" class="p-1 bg-[#F44336] text-white rounded-[8px] text-[14px] cursor-pointer" @click="deleteKid(kid.id)">删除</button>
       </div>
     </div>
-    <div class="mt-4 p-3 bg-[#E8F5E9] rounded-[10px]">
+    <button v-if="!showAddForm" class="w-full p-2 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer" @click="startAdd">
+      ➕ 添加新成员
+    </button>
+    <div v-else class="mt-4 p-3 bg-[#E8F5E9] rounded-[10px]">
       <input v-model="newKidName" placeholder="输入新成员名称" class="w-full p-2 border rounded-[8px] mb-2" @keyup.enter="addKid" />
-      <button class="w-full p-2 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer" @click="addKid">➕ 添加新成员</button>
+      <div class="flex gap-2">
+        <button class="flex-1 p-2 bg-[#4CAF50] text-white rounded-[8px] cursor-pointer" @click="addKid">添加</button>
+        <button class="flex-1 p-2 bg-[#9E9E9E] text-white rounded-[8px] cursor-pointer" @click="showAddForm = false">取消</button>
+      </div>
     </div>
   </AppModal>
 </template>
