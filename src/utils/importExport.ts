@@ -16,12 +16,14 @@ export interface ExportData {
   deduct_reasons_pool: DeductReason[]
   system_config: SystemConfig
   current_kid_id: number
-  custom_quotes: string[]
   export_version: string
   export_date: string
 }
 
-const EXPORT_VERSION = '1.0.10'
+// Keep export version in sync with package.json so future migration logic
+// (if any) can reason about the data shape accurately.
+declare const __APP_VERSION__: string
+const EXPORT_VERSION = __APP_VERSION__
 
 export function exportAllData(): ExportData {
   const kidsData = loadFromStorage(STORAGE_KEYS.KIDS_DATA) || []
@@ -30,7 +32,6 @@ export function exportAllData(): ExportData {
   const deductReasons = loadFromStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL) || []
   const systemConfig = loadFromStorage(STORAGE_KEYS.SYSTEM_CONFIG)
   const currentKidId = loadFromStorage(STORAGE_KEYS.CURRENT_KID_ID) || 1
-  const customQuotes = loadFromStorage(STORAGE_KEYS.CUSTOM_QUOTES) || []
 
   // Ensure systemConfig has all required fields
   const defaultConfig: SystemConfig = {
@@ -57,7 +58,6 @@ export function exportAllData(): ExportData {
     deduct_reasons_pool: deductReasons,
     system_config: exportedConfig,
     current_kid_id: currentKidId,
-    custom_quotes: customQuotes,
     export_version: EXPORT_VERSION,
     export_date: new Date().toISOString()
   }
@@ -72,10 +72,26 @@ export function importAllData(data: ExportData): boolean {
   // Ensure minimum kids count (at least 2)
   if (data.kids_data.length < 2) return false
 
-  // Compatibility: ensure each kid has exchangeHistory
+  // Compatibility: ensure each kid has all history arrays.
+  // Bug fix (HarmonyOS 6.1): importing data without these fields caused
+  // ActivityList to throw on first render, hiding the "活动记录" heading
+  // and "查看历史记录" button entirely on Huawei Browser 6.1.5.301.
   data.kids_data.forEach(kid => {
+    if (!kid.pointsHistory) kid.pointsHistory = []
+    if (!kid.drawHistory) kid.drawHistory = []
     if (!kid.exchangeHistory) kid.exchangeHistory = []
   })
+
+  // Defensive: current_kid_id must reference an existing kid. If the export
+  // file was hand-edited or produced by an older/different version, the id
+  // may not exist in kids_data — falling back keeps the UI consistent
+  // (currentKid getter would otherwise return undefined and break the page).
+  if (data.current_kid_id !== undefined && data.current_kid_id !== null) {
+    const kidExists = data.kids_data.some(k => k.id === data.current_kid_id)
+    if (!kidExists) {
+      data.current_kid_id = data.kids_data[0].id
+    }
+  }
 
   // Ensure each reason has category
   if (data.reasons_pool) {
@@ -91,7 +107,6 @@ export function importAllData(data: ExportData): boolean {
   saveToStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL, data.deduct_reasons_pool || [])
   saveToStorage(STORAGE_KEYS.SYSTEM_CONFIG, data.system_config)
   saveToStorage(STORAGE_KEYS.CURRENT_KID_ID, data.current_kid_id || 1)
-  saveToStorage(STORAGE_KEYS.CUSTOM_QUOTES, data.custom_quotes || [])
 
   return true
 }

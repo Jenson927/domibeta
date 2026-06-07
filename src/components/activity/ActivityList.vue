@@ -50,7 +50,10 @@ const recentActivities = computed(() => {
 
   const items: ActivityItem[] = []
 
-  currentKid.pointsHistory.forEach(item => {
+  // Defensive: imported data may temporarily lack these arrays.
+  // Without this guard, a TypeError here causes the entire ActivityList
+  // subtree to disappear on HarmonyOS 6.1 / Huawei Browser 6.1.5.301.
+  ;(currentKid.pointsHistory ?? []).forEach(item => {
     const isAdd = item.points > 0
     const icon = item.icon || (isAdd ? getAddIcon(item.reason) : getDeductIcon(item.reason))
     items.push({
@@ -61,7 +64,7 @@ const recentActivities = computed(() => {
     })
   })
 
-  currentKid.drawHistory.forEach(item => {
+  ;(currentKid.drawHistory ?? []).forEach(item => {
     const icon = item.icon || getDrawIcon(item.reward)
     items.push({
       date: item.date,
@@ -71,7 +74,7 @@ const recentActivities = computed(() => {
     })
   })
 
-  currentKid.exchangeHistory.forEach(item => {
+  ;(currentKid.exchangeHistory ?? []).forEach(item => {
     const icon = item.icon || getExchangeIcon(item.note)
     items.push({
       date: item.date,
@@ -106,8 +109,7 @@ function formatTime(dateStr: string): string {
   <div class="mt-4">
     <h3 class="text-[#333] font-bold mb-2 flex items-center justify-between">
       <span>活动记录</span>
-      <button
- class="p-[8px_16px] text-[14px] bg-[#2196F3] text-white border-none rounded-[8px] cursor-pointer" @click="emit('openHistory')">
+      <button class="p-[8px_16px] text-[14px] bg-[#2196F3] text-white border-none rounded-[8px] cursor-pointer" @click="emit('openHistory')">
         查看历史记录
       </button>
     </h3>

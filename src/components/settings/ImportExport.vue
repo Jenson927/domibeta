@@ -7,7 +7,7 @@ import {
   readImportFile,
   importAllData
 } from '@/utils/importExport'
-import { useKidsStore, useRewardsStore, useAddReasonsStore, useDeductReasonsStore } from '@/stores'
+import { useKidsStore, useRewardsStore, useAddReasonsStore, useDeductReasonsStore, useConfigStore } from '@/stores'
 
 const isOpen = defineModel<boolean>({ default: false })
 
@@ -15,6 +15,7 @@ const kidsStore = useKidsStore()
 const rewardsStore = useRewardsStore()
 const addReasonsStore = useAddReasonsStore()
 const deductReasonsStore = useDeductReasonsStore()
+const configStore = useConfigStore()
 
 const importError = ref('')
 const importSuccess = ref(false)
@@ -46,6 +47,9 @@ async function handleImport(event: Event) {
       rewardsStore.$patch({ rewards: data.rewards_pool })
       addReasonsStore.$patch({ addReasons: data.reasons_pool })
       deductReasonsStore.$patch({ deductReasons: data.deduct_reasons_pool })
+      // Bug fix: configStore was previously not synced — system config (password,
+      // exchange rate, background, riddles, etc.) stayed stale until reload.
+      configStore.$patch({ systemConfig: data.system_config })
 
       importSuccess.value = true
     } else {

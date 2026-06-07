@@ -7,8 +7,7 @@ export const STORAGE_KEYS = {
   REWARDS_POOL: 'rewards_pool',
   REASONS_POOL: 'reasons_pool',
   DEDUCT_REASONS_POOL: 'deduct_reasons_pool',
-  CURRENT_KID_ID: 'current_kid_id',
-  CUSTOM_QUOTES: 'custom_quotes'
+  CURRENT_KID_ID: 'current_kid_id'
 } as const
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]
@@ -21,5 +20,4 @@ export interface StorageTypeMap {
   reasons_pool: import('./reason').AddReason[]
   deduct_reasons_pool: import('./reason').DeductReason[]
   current_kid_id: number
-  custom_quotes: string[]
 }

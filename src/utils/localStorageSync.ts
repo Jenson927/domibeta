@@ -24,14 +24,6 @@ export function saveToStorage<K extends StorageKey>(key: K, data: StorageTypeMap
   }
 }
 
-export function removeFromStorage(key: StorageKey): void {
-  try {
-    localStorage.removeItem(key)
-  } catch (e) {
-    console.error('删除失败:', e)
-  }
-}
-
 // Smart merge: add new default items that don't exist by name in current data
 export function mergeWithDefaults<T extends { id: number; name: string }>(
   current: T[],

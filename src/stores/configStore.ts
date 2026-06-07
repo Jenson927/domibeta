@@ -82,6 +82,12 @@ export const useConfigStore = defineStore('config', {
     },
 
     addExchangeOption(option: Omit<ExchangeOption, 'id'>) {
+      // Defensive: ensure exchangeOptions is initialized. The state init in
+      // configStore fills this in, but a $patch from import may have replaced
+      // it with an empty array if the export's exchangeOptions was missing.
+      if (!this.systemConfig.exchangeOptions || this.systemConfig.exchangeOptions.length === 0) {
+        this.systemConfig.exchangeOptions = [...DEFAULT_EXCHANGE_OPTIONS]
+      }
       const maxId = this.systemConfig.exchangeOptions.length > 0
         ? Math.max(...this.systemConfig.exchangeOptions.map(o => o.id))
         : DEFAULT_EXCHANGE_OPTIONS.length

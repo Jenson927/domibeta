@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { loadFromStorage, saveToStorage, removeFromStorage, mergeWithDefaults } from '@/utils/localStorageSync'
+import { loadFromStorage, saveToStorage, mergeWithDefaults } from '@/utils/localStorageSync'
 
 // Mock localStorage
 let mockStorage: Record<string, string> = {}
@@ -30,12 +30,6 @@ describe('localStorageSync', () => {
     mockStorage['bad_key'] = 'not valid json {{{'
     const result = loadFromStorage('bad_key')
     expect(result).toBeNull()
-  })
-
-  it('removeFromStorage deletes key', () => {
-    saveToStorage('del_key', 'value')
-    removeFromStorage('del_key')
-    expect(loadFromStorage('del_key')).toBeNull()
   })
 
   it('mergeWithDefaults adds missing items by name', () => {
