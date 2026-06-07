@@ -42,7 +42,8 @@ export function exportAllData(): ExportData {
     password: '',
     customRiddles: [],
     exchangeOptions: [],
-    customQuotes: []
+    customQuotes: [],
+    riddleAnswerDelay: 5
   }
 
   const exportedConfig: SystemConfig = systemConfig
