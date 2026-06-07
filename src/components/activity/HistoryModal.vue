@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { AppModal } from '@/components/common'
 import { useKidsStore } from '@/stores'
 import { useAddReasonsStore } from '@/stores/addReasonsStore'
@@ -16,9 +16,17 @@ const configStore = useConfigStore()
 const rewardsStore = useRewardsStore()
 
 const activeTab = ref('all')
-const selectedKidId = ref<string>('all')
+const selectedKidId = ref<string>(String(kidsStore.currentKidId))
 const currentPage = ref(1)
 const pageSize = 20
+
+watch(() => isOpen.value, (open) => {
+  if (open) {
+    selectedKidId.value = String(kidsStore.currentKidId)
+    activeTab.value = 'all'
+    currentPage.value = 1
+  }
+})
 
 const tabOptions = [
   { key: 'all', label: '全部', icon: '📋' },
