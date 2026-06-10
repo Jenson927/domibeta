@@ -3,11 +3,72 @@
 
 import { loadFromStorage, saveToStorage } from '@/utils/localStorageSync'
 import { STORAGE_KEYS } from '@/types/localStorage'
-import type { Kid } from '@/types/kid'
+import type { Kid, ExchangeHistoryItem, DrawHistoryItem, PointsHistoryItem } from '@/types/kid'
 import type { Reward } from '@/types/reward'
 import type { AddReason, DeductReason } from '@/types/reason'
 import type { SystemConfig } from '@/types/config'
 import { EXCHANGE_RATE as DEFAULT_EXCHANGE_RATE } from '@/utils/localStorageSync'
+
+// Legacy data may have fields from old versions, e.g. ExchangeHistoryItem with
+// `name` instead of `optionName`, missing `note`, `totalPoints`, `id`, etc.
+// These functions fill missing fields with sensible defaults.
+function sanitizeExchangeHistoryItem(item: Partial<ExchangeHistoryItem>): ExchangeHistoryItem {
+  const points = item.points ?? 0
+  const absPoints = Math.abs(points)
+  const legacyName = (item as any).name || ''
+  return {
+    id: item.id ?? Date.now(),
+    exchangeOptionId: item.exchangeOptionId ?? 0,
+    optionName: item.optionName || legacyName || item.reason || '',
+    points,
+    pointsConsumed: item.pointsConsumed ?? absPoints,
+    quantity: item.quantity ?? 1,
+    totalPoints: item.totalPoints ?? absPoints,
+    date: item.date || new Date().toISOString(),
+    category: item.category || 'item',
+    note: item.note || item.reason || legacyName || '',
+    reason: item.reason || legacyName || '',
+    icon: item.icon || '🎁',
+    edited: item.edited,
+    editCount: item.editCount,
+    lastEditTime: item.lastEditTime
+  }
+}
+
+function sanitizeDrawHistoryItem(item: Partial<DrawHistoryItem>): DrawHistoryItem {
+  return {
+    date: item.date || new Date().toISOString(),
+    reward: item.reward || '',
+    points: item.points ?? -(item.pointsUsed ?? 0),
+    pointsUsed: item.pointsUsed ?? Math.abs(item.points ?? 0),
+    reason: item.reason || item.reward || '',
+    icon: item.icon || '🎰',
+    edited: item.edited,
+    editCount: item.editCount,
+    lastEditTime: item.lastEditTime
+  }
+}
+
+function sanitizePointsHistoryItem(item: Partial<PointsHistoryItem>): PointsHistoryItem {
+  return {
+    date: item.date || new Date().toISOString(),
+    points: item.points ?? 0,
+    reason: item.reason || '',
+    icon: item.icon,
+    edited: item.edited,
+    editCount: item.editCount,
+    lastEditTime: item.lastEditTime
+  }
+}
+
+export function sanitizeKidsData(kids: Kid[]): Kid[] {
+  return kids.map(kid => ({
+    ...kid,
+    pointsHistory: (kid.pointsHistory || []).map(sanitizePointsHistoryItem),
+    drawHistory: (kid.drawHistory || []).map(sanitizeDrawHistoryItem),
+    exchangeHistory: (kid.exchangeHistory || []).map(sanitizeExchangeHistoryItem)
+  }))
+}
 
 export interface ExportData {
   kids_data: Kid[]
@@ -26,7 +87,8 @@ declare const __APP_VERSION__: string
 const EXPORT_VERSION = __APP_VERSION__
 
 export function exportAllData(): ExportData {
-  const kidsData = loadFromStorage(STORAGE_KEYS.KIDS_DATA) || []
+  const rawKidsData = loadFromStorage(STORAGE_KEYS.KIDS_DATA) || []
+  const kidsData = sanitizeKidsData(rawKidsData)
   const rewardsPool = loadFromStorage(STORAGE_KEYS.REWARDS_POOL) || []
   const reasonsPool = loadFromStorage(STORAGE_KEYS.REASONS_POOL) || []
   const deductReasons = loadFromStorage(STORAGE_KEYS.DEDUCT_REASONS_POOL) || []
@@ -81,6 +143,9 @@ export function importAllData(data: ExportData): boolean {
     if (!kid.drawHistory) kid.drawHistory = []
     if (!kid.exchangeHistory) kid.exchangeHistory = []
   })
+
+  // Sanitize: normalize legacy/malformed history items (missing fields, old field names)
+  data.kids_data = sanitizeKidsData(data.kids_data)
 
   // Defensive: current_kid_id must reference an existing kid. If the export
   // file was hand-edited or produced by an older/different version, the id

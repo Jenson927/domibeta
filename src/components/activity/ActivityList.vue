@@ -12,25 +12,29 @@ const emit = defineEmits<{
   openHistory: []
 }>()
 
-function getAddIcon(reason: string): string {
+function getAddIcon(reason: string | undefined): string {
+  if (!reason) return '➕'
   const cleanReason = reason.replace(/^[^\s]+\s/, '')
   const found = addReasonsStore.allAddReasons.find(r => cleanReason === r.name || cleanReason.includes(r.name))
   return found?.icon || '➕'
 }
 
-function getDeductIcon(reason: string): string {
+function getDeductIcon(reason: string | undefined): string {
+  if (!reason) return '➖'
   const cleanReason = reason.replace(/^扣除：/, '').replace(/^[^\s]+\s/, '')
   const found = deductReasonsStore.allDeductReasons.find(r => cleanReason === r.name || cleanReason.includes(r.name))
   return found?.icon || '➖'
 }
 
-function getDrawIcon(reward: string): string {
+function getDrawIcon(reward: string | undefined): string {
+  if (!reward) return '🎰'
   const cleanReward = reward.replace(/^[^\s]+\s/, '')
   const found = rewardsStore.allRewards.find(r => cleanReward === r.name || cleanReward.includes(r.name))
   return found?.icon || '🎰'
 }
 
-function getExchangeIcon(note: string): string {
+function getExchangeIcon(note: string | undefined): string {
+  if (!note) return '🎁'
   const cleanNote = note.replace(/^[^\s]+\s/, '')
   const found = configStore.allExchangeOptions.find(o => cleanNote === o.name || cleanNote.includes(o.name))
   return found?.icon || '🎁'
@@ -68,7 +72,7 @@ const recentActivities = computed(() => {
     const icon = item.icon || getDrawIcon(item.reward)
     items.push({
       date: item.date,
-      text: `兑奖：${item.reward} (-${item.pointsUsed}分)`,
+      text: `兑奖：${item.reward || '未知'} (-${item.pointsUsed ?? 0}分)`,
       type: 'draw',
       icon
     })
@@ -78,7 +82,7 @@ const recentActivities = computed(() => {
     const icon = item.icon || getExchangeIcon(item.note)
     items.push({
       date: item.date,
-      text: `兑换：${item.note} (-${item.totalPoints}分)`,
+      text: `兑换：${item.note || item.reason || '未知'} (-${item.totalPoints ?? 0}分)`,
       type: 'exchange',
       icon
     })

@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from '@/types/localStorage'
 import { DEFAULT_KIDS } from '@/data/defaultKids'
 import { useConfigStore } from './configStore'
 import { useRewardsStore } from './rewardsStore'
+import { sanitizeKidsData } from '@/utils/importExport'
 import type { Kid, ExchangeHistoryItem, PointsHistoryItem, DrawHistoryItem } from '@/types/kid'
 
 function replaceKid(this: { kids: Kid[] }, kidId: number, updater: (kid: Kid) => Kid) {
@@ -20,6 +21,8 @@ export const useKidsStore = defineStore('kids', {
       kids = [...DEFAULT_KIDS]
       saveToStorage(STORAGE_KEYS.KIDS_DATA, kids)
     }
+
+    kids = sanitizeKidsData(kids)
 
     // Compatibility: ensure each kid has exchangeHistory
     kids.forEach(kid => {
